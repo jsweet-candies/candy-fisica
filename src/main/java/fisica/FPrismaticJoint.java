@@ -19,15 +19,13 @@
 
 package fisica;
 
-import processing.core.*;
+import org.jbox2d.common.Vec2;
+import org.jbox2d.dynamics.joints.JointDef;
+import org.jbox2d.dynamics.joints.PrismaticJoint;
+import org.jbox2d.dynamics.joints.PrismaticJointDef;
 
-import java.util.ArrayList;
-
-import org.jbox2d.common.*;
-import org.jbox2d.collision.*;
-import org.jbox2d.collision.shapes.*;
-import org.jbox2d.dynamics.*;
-import org.jbox2d.dynamics.joints.*;
+import def.processing.core.PApplet;
+import def.processing.core.PGraphics;
 
 /**
  * Represents a prismatic joint that restricts the movement of one body with respect to another to a translation along a given axis.  Often this joint is used with one of the bodies being static in order to only allow translation of the other body along a given axis.  This translation can also be bounded given lower and upper translation limits.
@@ -166,7 +164,7 @@ public class FPrismaticJoint extends FJoint {
    */
   public void setAxis(float x, float y) {
     // TODO: cannot change axis once it has been created
-    float d = Fisica.parent().dist(0, 0, x, y);
+    float d = PApplet.dist(0, 0, x, y);
     m_axis.set(x/d, y/d);
     updateLocalAxis();
   }
@@ -278,7 +276,7 @@ public class FPrismaticJoint extends FJoint {
     
     applet.translate(Fisica.worldToScreen(m_localAnchor1).x, Fisica.worldToScreen(m_localAnchor1).y);
     applet.translate(-Fisica.worldToScreen(m_localAnchor2).x, -Fisica.worldToScreen(m_localAnchor2).y);
-    applet.rotate(Fisica.parent().atan2(m_axis.y, m_axis.x));
+    applet.rotate(PApplet.atan2(m_axis.y, m_axis.x));
     applet.line(-lineHalfLength, 0, lineHalfLength, 0);
 
     // Right arrow

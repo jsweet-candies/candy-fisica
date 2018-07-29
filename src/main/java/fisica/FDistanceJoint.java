@@ -19,7 +19,7 @@
 
 package fisica;
 
-import processing.core.*;
+import def.processing.core.*;
 
 import java.util.ArrayList;
 
@@ -244,8 +244,8 @@ public class FDistanceJoint extends FJoint {
 
         applet.translate(getAnchor1X(), getAnchor1Y());
         
-        float ang = Fisica.parent().atan2(getAnchor2Y()-getAnchor1Y(), getAnchor2X()-getAnchor1X());
-        float dist = Fisica.parent().dist(getAnchor1X(), getAnchor1Y(), getAnchor2X(), getAnchor2Y());
+        float ang = PApplet.atan2(getAnchor2Y()-getAnchor1Y(), getAnchor2X()-getAnchor1X());
+        float dist = PApplet.dist(getAnchor1X(), getAnchor1Y(), getAnchor2X(), getAnchor2Y());
         applet.rotate(ang);
     
         if (m_length>0) {
@@ -261,12 +261,12 @@ public class FDistanceJoint extends FJoint {
         
         float x, y;
         for (int i=0; i<numSpins; i++) {
-            x = Fisica.parent().map(i+1, 0, numSpins+1, 10, dist-10);
+            x = PApplet.map(i+1, 0, numSpins+1, 10, dist-10);
             y = ((i % 2)*2-1)*4;
             applet.vertex(x, y);
         }
         
-        x = Fisica.parent().map(numSpins+1, 0, numSpins+1, 10, dist-10);
+        x = PApplet.map(numSpins+1, 0, numSpins+1, 10, dist-10);
         applet.vertex(x, 0);
         applet.vertex(dist, 0);
         

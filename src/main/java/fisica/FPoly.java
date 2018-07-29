@@ -25,7 +25,7 @@ import org.jbox2d.collision.shapes.*;
 import org.jbox2d.dynamics.*;
 import org.jbox2d.util.nonconvex.*;
 
-import processing.core.*;
+import def.processing.core.*;
 
 import java.util.ArrayList;
 

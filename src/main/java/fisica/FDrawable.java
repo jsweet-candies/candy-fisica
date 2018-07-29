@@ -24,7 +24,7 @@ import org.jbox2d.collision.*;
 import org.jbox2d.collision.shapes.*;
 import org.jbox2d.dynamics.*;
 
-import processing.core.*;
+import def.processing.core.*;
 
 /**
  * This is a class from which all drawable objects of a world inherit.
@@ -108,17 +108,6 @@ public abstract class FDrawable {
     // Don't draw anything, each subclass will draw itself
   }
 
-    /**
-   * This method is called when calling {@code world.draw()}.
-   * This method may be overriden to allow custom drawing of the object.
-   *
-   * @param applet  the applet onto which the object must be drawn.
-   */
-   public void draw(PApplet applet) {
-    // Don't draw anything, each subclass will draw itself
-    draw(applet.g);
-  }
-
   /**
    * This method is called when calling {@code world.drawDebug()}.
    * This method may be overriden to allow custom debug drawing of the object.
@@ -129,18 +118,6 @@ public abstract class FDrawable {
     // Don't draw anything, each subclass will draw itself
   }
 
-  /**
-   * This method is called when calling {@code world.drawDebug()}.
-   * This method may be overriden to allow custom debug drawing of the object.
-   *
-   * @param applet  the applet onto which the object must be drawn.
-   */
-  public void drawDebug(PApplet applet) {
-    // Don't draw anything, each subclass will draw itself
-    drawDebug(applet.g);
-  }
-
-  
   /**
    * Attach an image to the object.
    * This method allows to draw an image onto the screen instead of calling the {@link #draw(PApplet)} method.

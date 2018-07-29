@@ -18,7 +18,10 @@
 */
 
 package fisica;
-import processing.core.*;
+
+import def.processing.core.*;
+
+import static jsweet.util.Lang.any;
 
 import org.jbox2d.common.*;
 
@@ -78,6 +81,7 @@ public class Fisica implements PConstants{
   private static boolean m_initialized = false;
   private static PApplet m_parent;
   private static FViewport m_viewport;
+  private static PGraphics m_parentGraphics;
 
   public static Vec2 screenToWorld( Vec2 m_in ) {
     return m_viewport.getScreenToWorld(m_in);
@@ -119,13 +123,21 @@ public class Fisica implements PConstants{
   protected static boolean initialized() {
     return m_initialized;
   }
-
+  
   public static PApplet parent(){
-    if(m_parent == null){
+	  if(m_parent == null){
+		  throw new LibraryNotInitializedException();
+	  }
+	  
+	  return m_parent;
+  }
+
+  public static PGraphics parentGraphics(){
+    if(m_parentGraphics == null){
       throw new LibraryNotInitializedException();
     }
 
-    return m_parent;
+    return m_parentGraphics;
   }
 
   /**
@@ -135,6 +147,9 @@ public class Fisica implements PConstants{
    */
   public static void init(PApplet applet){
     m_parent = applet;
+    m_parentGraphics = any(applet); // applet.createGraphics(m_parent.width, m_parent.height);
+    m_parentGraphics.beginDraw();
+    
     m_initialized = true;
 
     m_viewport = new FViewport();

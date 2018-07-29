@@ -19,7 +19,7 @@
 
 package fisica;
 
-import processing.core.*;
+import def.processing.core.*;
 
 import java.util.ArrayList;
 

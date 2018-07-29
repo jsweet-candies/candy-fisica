@@ -31,7 +31,7 @@ import org.jbox2d.dynamics.joints.*;
 
 import java.text.DecimalFormat;
 
-import processing.core.*;
+import def.processing.core.*;
 
 /**
  * Represents a body in the world.
@@ -141,15 +141,15 @@ public abstract class FBody extends FDrawable {
     m_body.m_angularDamping = m_angularDamping;
 
     if (m_rotatable) {
-      m_body.m_flags &= ~m_body.e_fixedRotationFlag;
+      m_body.m_flags &= ~Body.e_fixedRotationFlag;
     }else{
-      m_body.m_flags |= m_body.e_fixedRotationFlag;
+      m_body.m_flags |= Body.e_fixedRotationFlag;
     }
     
     if (m_allowSleep) {
-      m_body.m_flags |= m_body.e_allowSleepFlag;
+      m_body.m_flags |= Body.e_allowSleepFlag;
     }else{
-      m_body.m_flags &= ~m_body.e_allowSleepFlag;
+      m_body.m_flags &= ~Body.e_allowSleepFlag;
     }
 
     m_body.setBullet(m_bullet);
@@ -157,7 +157,7 @@ public abstract class FBody extends FDrawable {
     m_body.applyForce(m_force, m_body.getWorldCenter());
     m_body.applyTorque(m_torque);
 
-    m_body.m_type = m_static ? m_body.e_staticType : m_body.e_dynamicType;
+    m_body.m_type = m_static ? Body.e_staticType : Body.e_dynamicType;
     updateMass();
 
   }
@@ -1051,7 +1051,7 @@ public abstract class FBody extends FDrawable {
    */
   public void setStatic( boolean value ){
     if( m_body != null ) {
-      m_body.m_type = value ? m_body.e_staticType : m_body.e_dynamicType;
+      m_body.m_type = value ? Body.e_staticType : Body.e_dynamicType;
     }
 
     m_static = value;
@@ -1137,9 +1137,9 @@ public abstract class FBody extends FDrawable {
     if ( m_body != null ) {
       // TODO: check this
       if (rotatable) {
-        m_body.m_flags &= ~m_body.e_fixedRotationFlag;
+        m_body.m_flags &= ~Body.e_fixedRotationFlag;
       }else{
-        m_body.m_flags |= m_body.e_fixedRotationFlag;
+        m_body.m_flags |= Body.e_fixedRotationFlag;
       }
     }
 
@@ -1155,9 +1155,9 @@ public abstract class FBody extends FDrawable {
     if ( m_body != null ) {
       // TODO: check this
       if (allowSleep) {
-        m_body.m_flags |= m_body.e_allowSleepFlag;
+        m_body.m_flags |= Body.e_allowSleepFlag;
       }else{
-        m_body.m_flags &= ~m_body.e_allowSleepFlag;
+        m_body.m_flags &= ~Body.e_allowSleepFlag;
         m_body.wakeUp();
       }
     }

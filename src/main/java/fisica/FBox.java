@@ -24,7 +24,7 @@ import org.jbox2d.collision.*;
 import org.jbox2d.collision.shapes.*;
 import org.jbox2d.dynamics.*;
 
-import processing.core.*;
+import def.processing.core.*;
 
 /**
  * Represents a rectangular body that can be added to a world.

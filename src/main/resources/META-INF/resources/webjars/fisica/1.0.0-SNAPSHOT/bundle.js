@@ -373,13 +373,13 @@ var fisica;
                 return o.hashCode();
             }
             else {
-                return o.toString();
+                return o.toString().split('').reduce(function (prevHash, currVal) { return (((prevHash << 5) - prevHash) + currVal.charCodeAt(0)) | 0; }, 0);
             } })(this.m_b1);
             var h2 = (function (o) { if (o.hashCode) {
                 return o.hashCode();
             }
             else {
-                return o.toString();
+                return o.toString().split('').reduce(function (prevHash, currVal) { return (((prevHash << 5) - prevHash) + currVal.charCodeAt(0)) | 0; }, 0);
             } })(this.m_b2);
             if (h1 < h2) {
                 result = FContactID.HASH_PRIME * result + h1;
@@ -621,53 +621,27 @@ var fisica;
             applet.image(this.m_image, 0 - (this.m_image.width / 2 | 0), 0 - (this.m_image.height / 2 | 0));
             applet.tint(255, 255, 255, 255);
         };
-        FDrawable.prototype.draw$processing_core_PGraphics = function (graphics) {
-        };
         /**
          * This method is called when calling {@code world.draw()}.
          * This method may be overriden to allow custom drawing of the object.
          *
-         * @param {processing.core.PGraphics} graphics  the graphics onto which the object must be drawn.
+         * @param {PGraphics} graphics  the graphics onto which the object must be drawn.
          */
         FDrawable.prototype.draw = function (graphics) {
-            if (((graphics != null && graphics instanceof processing.core.PGraphics) || graphics === null)) {
-                return this.draw$processing_core_PGraphics(graphics);
-            }
-            else if (((graphics != null && graphics instanceof processing.core.PApplet) || graphics === null)) {
-                return this.draw$processing_core_PApplet(graphics);
-            }
-            else
-                throw new Error('invalid overload');
-        };
-        FDrawable.prototype.draw$processing_core_PApplet = function (applet) {
-            this.draw$processing_core_PGraphics(applet.g);
-        };
-        FDrawable.prototype.drawDebug$processing_core_PGraphics = function (graphics) {
         };
         /**
          * This method is called when calling {@code world.drawDebug()}.
          * This method may be overriden to allow custom debug drawing of the object.
          *
-         * @param {processing.core.PGraphics} graphics  the graphics onto which the object must be drawn.
+         * @param {PGraphics} graphics  the graphics onto which the object must be drawn.
          */
         FDrawable.prototype.drawDebug = function (graphics) {
-            if (((graphics != null && graphics instanceof processing.core.PGraphics) || graphics === null)) {
-                return this.drawDebug$processing_core_PGraphics(graphics);
-            }
-            else if (((graphics != null && graphics instanceof processing.core.PApplet) || graphics === null)) {
-                return this.drawDebug$processing_core_PApplet(graphics);
-            }
-            else
-                throw new Error('invalid overload');
-        };
-        FDrawable.prototype.drawDebug$processing_core_PApplet = function (applet) {
-            this.drawDebug$processing_core_PGraphics(applet.g);
         };
         /**
          * Attach an image to the object.
          * This method allows to draw an image onto the screen instead of calling the {@link #draw(PApplet)} method.
          *
-         * @param {processing.core.PImage} img  the PImage to attach to the object.
+         * @param {PImage} img  the PImage to attach to the object.
          */
         FDrawable.prototype.attachImage = function (img) {
             this.m_image = img;
@@ -951,13 +925,21 @@ var fisica;
             }
             return Fisica.m_parent;
         };
+        Fisica.parentGraphics = function () {
+            if (Fisica.m_parentGraphics == null) {
+                throw new Fisica.LibraryNotInitializedException();
+            }
+            return Fisica.m_parentGraphics;
+        };
         /**
          * Initialize the library.  Must be called before any use of the library.  Must be called by passing the PApplet.  e.g. {@code Fisica.init(this)}
          *
-         * @param {processing.core.PApplet} applet  The applet on which to use the library.  This library can only be used with one applet
+         * @param {*} applet  The applet on which to use the library.  This library can only be used with one applet
          */
         Fisica.init = function (applet) {
             Fisica.m_parent = applet;
+            Fisica.m_parentGraphics = (applet);
+            Fisica.m_parentGraphics.beginDraw();
             Fisica.m_initialized = true;
             Fisica.m_viewport = new Fisica.FViewport();
             Fisica.m_viewport.setScaleTransform(20);
@@ -975,9 +957,10 @@ var fisica;
     Fisica.m_initialized = false;
     Fisica.m_parent = null;
     Fisica.m_viewport = null;
+    Fisica.m_parentGraphics = null;
     fisica.Fisica = Fisica;
     Fisica["__class"] = "fisica.Fisica";
-    Fisica["__interfaces"] = ["processing.core.PConstants"];
+    Fisica["__interfaces"] = ["def.processing.core.PConstants"];
     (function (Fisica) {
         var FViewport = (function () {
             function FViewport() {
@@ -1149,7 +1132,7 @@ var fisica;
          * @see #getNormalY
          */
         FRaycastResult.prototype.getX = function () {
-            return fisica.Fisica.parent().lerp(this.m_x1, this.m_x2, this.m_lambda);
+            return PApplet.lerp(this.m_x1, this.m_x2, this.m_lambda);
         };
         /**
          * Returns the vertical component of the contact ray cast normal.
@@ -1160,7 +1143,7 @@ var fisica;
          * @see #getNormalY
          */
         FRaycastResult.prototype.getY = function () {
-            return fisica.Fisica.parent().lerp(this.m_y1, this.m_y2, this.m_lambda);
+            return PApplet.lerp(this.m_y1, this.m_y2, this.m_lambda);
         };
         return FRaycastResult;
     }());
@@ -1169,9 +1152,11 @@ var fisica;
 })(fisica || (fisica = {}));
 (function (fisica) {
     /**
-     * Constructs the world where all the bodies live in.  We usually want to build the world larger than the actual screen,
-     * because when bodies exit the world they will appear stuck since they do not get update anymore.  By default the world's
-     * width and height are three times larger than those of the Processing canvas.
+     * Constructs the world where all the bodies live in. We usually want to build
+     * the world larger than the actual screen, because when bodies exit the world
+     * they will appear stuck since they do not get update anymore. By default the
+     * world's width and height are three times larger than those of the Processing
+     * canvas.
      *
      * {@code
      * FWorld world;
@@ -1180,15 +1165,17 @@ var fisica;
      * size(200, 200);
      *
      * Fisica.init(this);
-     * world = new FWorld(-width, -height, 2*width, 2*height);
-     * }
-     * }
+     * world = new FWorld(-width, -height, 2*width, 2*height); } }
      *
      * @usage World
-     * @param {number} topLeftX  the horizontal coordinate of the top left corner of the world
-     * @param {number} topLeftY  the vertical coordinate of the top left corner of the world
-     * @param {number} bottomRightX  the horizontal coordinate of the bottom right corner of the world
-     * @param {number} bottomRightY  the vertical coordinate of the bottom right corner of the world
+     * @param {number} topLeftX
+     * the horizontal coordinate of the top left corner of the world
+     * @param {number} topLeftY
+     * the vertical coordinate of the top left corner of the world
+     * @param {number} bottomRightX
+     * the horizontal coordinate of the bottom right corner of the world
+     * @param {number} bottomRightY
+     * the vertical coordinate of the bottom right corner of the world
      * @see FBody
      * @class
      * @extends org.jbox2d.dynamics.World
@@ -1239,7 +1226,7 @@ var fisica;
                 _this.m_grabbable = true;
                 _this.m_grabPositionX = 0.0;
                 _this.m_grabPositionY = 0.0;
-                _this.m_mouseButton = processing.core.PConstants.LEFT;
+                _this.m_mouseButton = PConstants.LEFT;
                 _this.m_fbodies = ([]);
                 _this.m_mouseJoint = new fisica.FMouseJoint(null, 0.0, 0.0);
                 _this.m_small = new org.jbox2d.common.Vec2(0.001, 0.001);
@@ -1287,50 +1274,18 @@ var fisica;
                     _super.prototype.setPositionCorrection.call(_this, true);
                     _super.prototype.setContinuousPhysics.call(_this, true);
                     fisica.Fisica.parent().registerMethod("mouseEvent", _this);
-                    try {
-                        _this.m_contactStartedMethod = (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
-                            return { owner: c, name: p, fn: c.prototype[p] };
-                        else
-                            return null; })(fisica.Fisica.parent().constructor, "contactStarted");
-                    }
-                    catch (e) {
-                    }
-                    ;
-                    try {
-                        _this.m_contactPersistedMethod = (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
-                            return { owner: c, name: p, fn: c.prototype[p] };
-                        else
-                            return null; })(fisica.Fisica.parent().constructor, "contactPersisted");
-                    }
-                    catch (e) {
-                    }
-                    ;
-                    try {
-                        _this.m_contactEndedMethod = (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
-                            return { owner: c, name: p, fn: c.prototype[p] };
-                        else
-                            return null; })(fisica.Fisica.parent().constructor, "contactEnded");
-                    }
-                    catch (e) {
-                    }
-                    ;
-                    try {
-                        _this.m_contactResultMethod = (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
-                            return { owner: c, name: p, fn: c.prototype[p] };
-                        else
-                            return null; })(fisica.Fisica.parent().constructor, "contactResult");
-                    }
-                    catch (e) {
-                    }
-                    ;
+                    _this.m_contactStartedMethod = ((fisica.Fisica.parent())["contactStarted"]);
+                    _this.m_contactPersistedMethod = ((fisica.Fisica.parent())["contactPersisted"]);
+                    _this.m_contactEndedMethod = ((fisica.Fisica.parent())["contactEnded"]);
+                    _this.m_contactResultMethod = ((fisica.Fisica.parent())["contactResult"]);
                     _this.m_contactListener = new FWorld.ConcreteContactListener(_this);
                     _this.m_contactListener.m_world = _this;
-                    _this.setContactListener(_this.m_contactListener);
+                    _this.setContactListener$org_jbox2d_dynamics_ContactListener(_this.m_contactListener);
                     _this.m_contacts = ({});
                     _this.m_contactResults = ([]);
                     _this.m_actions = ([]);
                     _this.m_mouseJoint.setDrawable(false);
-                    _this.setGravity(0, 200);
+                    _this.setGravity$float$float(0, 200);
                 })();
             }
             else if (topLeftX === undefined && topLeftY === undefined && bottomRightX === undefined && bottomRightY === undefined) {
@@ -1381,7 +1336,7 @@ var fisica;
                     _this.m_grabbable = true;
                     _this.m_grabPositionX = 0.0;
                     _this.m_grabPositionY = 0.0;
-                    _this.m_mouseButton = processing.core.PConstants.LEFT;
+                    _this.m_mouseButton = PConstants.LEFT;
                     _this.m_fbodies = ([]);
                     _this.m_mouseJoint = new fisica.FMouseJoint(null, 0.0, 0.0);
                     _this.m_small = new org.jbox2d.common.Vec2(0.001, 0.001);
@@ -1429,50 +1384,18 @@ var fisica;
                         _super.prototype.setPositionCorrection.call(_this, true);
                         _super.prototype.setContinuousPhysics.call(_this, true);
                         fisica.Fisica.parent().registerMethod("mouseEvent", _this);
-                        try {
-                            _this.m_contactStartedMethod = (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
-                                return { owner: c, name: p, fn: c.prototype[p] };
-                            else
-                                return null; })(fisica.Fisica.parent().constructor, "contactStarted");
-                        }
-                        catch (e) {
-                        }
-                        ;
-                        try {
-                            _this.m_contactPersistedMethod = (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
-                                return { owner: c, name: p, fn: c.prototype[p] };
-                            else
-                                return null; })(fisica.Fisica.parent().constructor, "contactPersisted");
-                        }
-                        catch (e) {
-                        }
-                        ;
-                        try {
-                            _this.m_contactEndedMethod = (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
-                                return { owner: c, name: p, fn: c.prototype[p] };
-                            else
-                                return null; })(fisica.Fisica.parent().constructor, "contactEnded");
-                        }
-                        catch (e) {
-                        }
-                        ;
-                        try {
-                            _this.m_contactResultMethod = (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
-                                return { owner: c, name: p, fn: c.prototype[p] };
-                            else
-                                return null; })(fisica.Fisica.parent().constructor, "contactResult");
-                        }
-                        catch (e) {
-                        }
-                        ;
+                        _this.m_contactStartedMethod = ((fisica.Fisica.parent())["contactStarted"]);
+                        _this.m_contactPersistedMethod = ((fisica.Fisica.parent())["contactPersisted"]);
+                        _this.m_contactEndedMethod = ((fisica.Fisica.parent())["contactEnded"]);
+                        _this.m_contactResultMethod = ((fisica.Fisica.parent())["contactResult"]);
                         _this.m_contactListener = new FWorld.ConcreteContactListener(_this);
                         _this.m_contactListener.m_world = _this;
-                        _this.setContactListener(_this.m_contactListener);
+                        _this.setContactListener$org_jbox2d_dynamics_ContactListener(_this.m_contactListener);
                         _this.m_contacts = ({});
                         _this.m_contactResults = ([]);
                         _this.m_actions = ([]);
                         _this.m_mouseJoint.setDrawable(false);
-                        _this.setGravity(0, 200);
+                        _this.setGravity$float$float(0, 200);
                     })();
                 }
             }
@@ -1516,8 +1439,21 @@ var fisica;
             }
             joint.removeFromWorld();
         };
-        FWorld.prototype.setContactListener = function (listener) {
+        FWorld.prototype.setContactListener$fisica_FContactListener = function (listener) {
             this.m_clientContactListener = listener;
+        };
+        FWorld.prototype.setContactListener = function (listener) {
+            if (((listener != null && (listener["__interfaces"] != null && listener["__interfaces"].indexOf("fisica.FContactListener") >= 0 || listener.constructor != null && listener.constructor["__interfaces"] != null && listener.constructor["__interfaces"].indexOf("fisica.FContactListener") >= 0)) || listener === null)) {
+                return this.setContactListener$fisica_FContactListener(listener);
+            }
+            else if (((listener != null && (listener["__interfaces"] != null && listener["__interfaces"].indexOf("org.jbox2d.dynamics.ContactListener") >= 0 || listener.constructor != null && listener.constructor["__interfaces"] != null && listener.constructor["__interfaces"].indexOf("org.jbox2d.dynamics.ContactListener") >= 0)) || listener === null)) {
+                return this.setContactListener$org_jbox2d_dynamics_ContactListener(listener);
+            }
+            else
+                throw new Error('invalid overload');
+        };
+        FWorld.prototype.setContactListener$org_jbox2d_dynamics_ContactListener = function (listener) {
+            _super.prototype.setContactListener.call(this, listener);
         };
         FWorld.prototype.grabBody = function (x, y) {
             if (this.m_mouseJoint.getGrabbedBody() != null) {
@@ -1555,24 +1491,8 @@ var fisica;
             this.m_mouseJoint.releaseGrabbedBody();
         };
         /**
-         * This is an internal method to handle mouse interaction and should not be used.
-         * @internal
-         * @exclude
-         * @param {processing.event.MouseEvent} event
-         */
-        FWorld.prototype.mouseEvent = function (event) {
-            if (event.getAction() === event.PRESS && event.getButton() === this.m_mouseButton) {
-                this.grabBody(event.getX(), event.getY());
-            }
-            if (event.getAction() === event.RELEASE && event.getButton() === this.m_mouseButton) {
-                this.releaseBody();
-            }
-            if (event.getAction() === event.DRAG) {
-                this.dragBody(event.getX(), event.getY());
-            }
-        };
-        /**
-         * Returns the mouse joint that is used for interaction with the bodies in the world.
+         * Returns the mouse joint that is used for interaction with the bodies in the
+         * world.
          *
          * @return {fisica.FMouseJoint} the mouse joint used for grabbing bodies
          */
@@ -1580,14 +1500,17 @@ var fisica;
             return this.m_mouseJoint;
         };
         /**
-         * Controls whether the bodies in the world can be grabbed by the mouse or not.  By default the world bodies' are grabbable and draggable.
+         * Controls whether the bodies in the world can be grabbed by the mouse or not.
+         * By default the world bodies' are grabbable and draggable.
          *
          * {@code
          * world.setGrabbable(false);
          * }
          *
          * @usage World
-         * @param {boolean} value  if true the bodies that live in this world can be grabbed and dragged using the mouse
+         * @param {boolean} value
+         * if true the bodies that live in this world can be grabbed and
+         * dragged using the mouse
          * @see FBody
          */
         FWorld.prototype.setGrabbable = function (value) {
@@ -1607,85 +1530,79 @@ var fisica;
             }
             ;
         };
-        FWorld.prototype.draw$processing_core_PApplet = function (applet) {
-            this.draw$processing_core_PGraphics(applet.g);
-        };
-        /**
-         * Draws all the bodies in the world.  This method is often called in the draw method of the applet.
-         *
-         * @param {processing.core.PApplet} applet  applet to which to draw the world.  Useful when trying to draw the world on other Processing backends, such as PDF
-         * @see FBody
-         */
-        FWorld.prototype.draw = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.draw$processing_core_PApplet(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.draw$processing_core_PGraphics(applet);
-            }
-            else if (applet === undefined) {
-                return this.draw$();
-            }
-            else
-                throw new Error('invalid overload');
-        };
-        FWorld.prototype.draw$processing_core_PGraphics = function (graphics) {
+        FWorld.prototype.draw$def_processing_core_PGraphics = function (graphics) {
             this.processActions();
             for (var i = 0; i < this.m_fbodies.length; i++) {
                 var fb = this.m_fbodies[i];
                 if (fb != null && fb.isDrawable())
-                    fb.draw$processing_core_PGraphics(graphics);
+                    fb.draw(graphics);
             }
             ;
             for (var j = this.getJointList(); j != null; j = j.m_next) {
                 var fj = (j.m_userData);
                 if (fj != null && fj.isDrawable())
-                    fj.draw$processing_core_PGraphics(graphics);
+                    fj.draw(graphics);
             }
             ;
         };
-        FWorld.prototype.drawDebug$processing_core_PApplet = function (applet) {
-            this.drawDebug$processing_core_PGraphics(applet.g);
-        };
         /**
-         * Draws the debug version of all the bodies in the world.  This method is often called in the draw method of the applet.
+         * Draws all the bodies in the world. This method is often called in the draw
+         * method of the applet.
          *
-         * @param {processing.core.PApplet} applet  applet to which to draw the world.  Useful when trying to draw the world on other Processing backends, such as PDF
+         * @param {PGraphics} graphics
+         * graphics to which to draw the world. Useful when trying to draw
+         * the world on other buffers, such as when using createGraphics
          * @see FBody
          */
-        FWorld.prototype.drawDebug = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.drawDebug$processing_core_PApplet(applet);
+        FWorld.prototype.draw = function (graphics) {
+            if (((graphics != null && graphics instanceof PGraphics) || graphics === null)) {
+                return this.draw$def_processing_core_PGraphics(graphics);
             }
-            else if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.drawDebug$processing_core_PGraphics(applet);
-            }
-            else if (applet === undefined) {
-                return this.drawDebug$();
+            else if (graphics === undefined) {
+                return this.draw$();
             }
             else
                 throw new Error('invalid overload');
         };
-        FWorld.prototype.drawDebug$processing_core_PGraphics = function (graphics) {
+        FWorld.prototype.drawDebug$def_processing_core_PGraphics = function (graphics) {
             this.processActions();
             for (var i = 0; i < this.m_fbodies.length; i++) {
                 var fb = this.m_fbodies[i];
                 if (fb != null)
-                    fb.drawDebug$processing_core_PGraphics(graphics);
+                    fb.drawDebug(graphics);
             }
             ;
             for (var j = this.getJointList(); j != null; j = j.m_next) {
                 var fj = (j.m_userData);
                 if (fj != null)
-                    fj.drawDebug$processing_core_PGraphics(graphics);
+                    fj.drawDebug(graphics);
             }
             ;
         };
+        /**
+         * Draws the debug version of all the bodies in the world. This method is often
+         * called in the draw method of the applet.
+         *
+         * @param {PGraphics} graphics
+         * graphics to which to draw the world. Useful when trying to draw
+         * the world on other buffers, such as when using createGraphics
+         * @see FBody
+         */
+        FWorld.prototype.drawDebug = function (graphics) {
+            if (((graphics != null && graphics instanceof PGraphics) || graphics === null)) {
+                return this.drawDebug$def_processing_core_PGraphics(graphics);
+            }
+            else if (graphics === undefined) {
+                return this.drawDebug$();
+            }
+            else
+                throw new Error('invalid overload');
+        };
         FWorld.prototype.draw$ = function () {
-            this.draw$processing_core_PApplet(fisica.Fisica.parent());
+            this.draw$def_processing_core_PGraphics(fisica.Fisica.parentGraphics());
         };
         FWorld.prototype.drawDebug$ = function () {
-            this.drawDebug$processing_core_PApplet(fisica.Fisica.parent());
+            this.drawDebug$def_processing_core_PGraphics(fisica.Fisica.parentGraphics());
         };
         FWorld.prototype.add$fisica_FBody = function (body) {
             var action = new fisica.FAddBodyAction(body);
@@ -1694,7 +1611,8 @@ var fisica;
         /**
          * Add a body to the world.
          *
-         * @param {fisica.FBody} body   body to be added to the world
+         * @param {fisica.FBody} body
+         * body to be added to the world
          * @see #remove(FBody)
          */
         FWorld.prototype.add = function (body) {
@@ -1714,7 +1632,8 @@ var fisica;
         /**
          * Remove a body from the world.
          *
-         * @param {fisica.FBody} body   body to be removed from the world
+         * @param {fisica.FBody} body
+         * body to be removed from the world
          * @see #add(FBody)
          */
         FWorld.prototype.remove = function (body) {
@@ -1736,7 +1655,7 @@ var fisica;
             /* add */ (this.m_actions.push(action) > 0);
         };
         /**
-         * Clear all bodies and joints from the world.  NOT IMPLEMENTED YET.
+         * Clear all bodies and joints from the world. NOT IMPLEMENTED YET.
          */
         FWorld.prototype.clear = function () {
             for (var j = this.getJointList(); j != null; j = j.m_next) {
@@ -1787,13 +1706,20 @@ var fisica;
             this.setEdgesRestitution(this.m_edgesRestitution);
         };
         /**
-         * Add edges of given dimensions to the world. This will create the bodies for {@link #left}, {@link #right}, {@link #bottom} and {@link #top}.
+         * Add edges of given dimensions to the world. This will create the bodies for
+         * {@link #left}, {@link #right}, {@link #bottom} and {@link #top}.
          *
-         * @param {number} topLeftX  the horizontal coordinate of the top left corner of the edges
-         * @param {number} topLeftY  the vertical coordinate of the top left corner of the edges
-         * @param {number} bottomRightX  the horizontal coordinate of the bottom right corner of the edges
-         * @param {number} bottomRightY  the vertical coordinate of the bottom right corner of the edges
-         * @param {number} color  the color of the edges.  This color must be passed using Processing's color() function
+         * @param {number} topLeftX
+         * the horizontal coordinate of the top left corner of the edges
+         * @param {number} topLeftY
+         * the vertical coordinate of the top left corner of the edges
+         * @param {number} bottomRightX
+         * the horizontal coordinate of the bottom right corner of the edges
+         * @param {number} bottomRightY
+         * the vertical coordinate of the bottom right corner of the edges
+         * @param {number} color
+         * the color of the edges. This color must be passed using
+         * Processing's color() function
          */
         FWorld.prototype.setEdges = function (topLeftX, topLeftY, bottomRightX, bottomRightY, color) {
             if (((typeof topLeftX === 'number') || topLeftX === null) && ((typeof topLeftY === 'number') || topLeftY === null) && ((typeof bottomRightX === 'number') || bottomRightX === null) && ((typeof bottomRightY === 'number') || bottomRightY === null) && ((typeof color === 'number') || color === null)) {
@@ -1802,8 +1728,8 @@ var fisica;
             else if (((typeof topLeftX === 'number') || topLeftX === null) && ((typeof topLeftY === 'number') || topLeftY === null) && ((typeof bottomRightX === 'number') || bottomRightX === null) && ((typeof bottomRightY === 'number') || bottomRightY === null) && color === undefined) {
                 return this.setEdges$float$float$float$float(topLeftX, topLeftY, bottomRightX, bottomRightY);
             }
-            else if (((topLeftX != null && topLeftX instanceof processing.core.PApplet) || topLeftX === null) && ((typeof topLeftY === 'number') || topLeftY === null) && bottomRightX === undefined && bottomRightY === undefined && color === undefined) {
-                return this.setEdges$processing_core_PApplet$int(topLeftX, topLeftY);
+            else if (((topLeftX != null && (topLeftX["__interfaces"] != null && topLeftX["__interfaces"].indexOf("def.processing.core.PApplet") >= 0 || topLeftX.constructor != null && topLeftX.constructor["__interfaces"] != null && topLeftX.constructor["__interfaces"].indexOf("def.processing.core.PApplet") >= 0)) || topLeftX === null) && ((typeof topLeftY === 'number') || topLeftY === null) && bottomRightX === undefined && bottomRightY === undefined && color === undefined) {
+                return this.setEdges$def_processing_core_PApplet$int(topLeftX, topLeftY);
             }
             else if (((typeof topLeftX === 'number') || topLeftX === null) && topLeftY === undefined && bottomRightX === undefined && bottomRightY === undefined && color === undefined) {
                 return this.setEdges$int(topLeftX);
@@ -1817,19 +1743,20 @@ var fisica;
         FWorld.prototype.setEdges$float$float$float$float = function (topLeftX, topLeftY, bottomRightX, bottomRightY) {
             this.setEdges$float$float$float$float$int(topLeftX, topLeftY, bottomRightX, bottomRightY, fisica.Fisica.parent().color(0));
         };
-        FWorld.prototype.setEdges$processing_core_PApplet$int = function (applet, color) {
+        FWorld.prototype.setEdges$def_processing_core_PApplet$int = function (applet, color) {
             this.setEdges$float$float$float$float$int(0, 0, applet.width, applet.height, color);
         };
         FWorld.prototype.setEdges$int = function (color) {
-            this.setEdges$processing_core_PApplet$int(fisica.Fisica.parent(), color);
+            this.setEdges$def_processing_core_PApplet$int(fisica.Fisica.parent(), color);
         };
         FWorld.prototype.setEdges$ = function () {
-            this.setEdges$processing_core_PApplet$int(fisica.Fisica.parent(), fisica.Fisica.parent().color(0));
+            this.setEdges$def_processing_core_PApplet$int(fisica.Fisica.parent(), fisica.Fisica.parent().color(0));
         };
         /**
          * Set the friction of all the edges.
          *
-         * @param {number} friction   the friction of the edges
+         * @param {number} friction
+         * the friction of the edges
          */
         FWorld.prototype.setEdgesFriction = function (friction) {
             if (this.left != null) {
@@ -1849,7 +1776,8 @@ var fisica;
         /**
          * Set the restitution of all the edges.
          *
-         * @param {number} restitution   the restitution of the edges
+         * @param {number} restitution
+         * the restitution of the edges
          */
         FWorld.prototype.setEdgesRestitution = function (restitution) {
             if (this.left != null) {
@@ -1866,14 +1794,30 @@ var fisica;
             }
             this.m_edgesRestitution = restitution;
         };
+        FWorld.prototype.setGravity$float$float = function (gx, gy) {
+            this.setGravity$org_jbox2d_common_Vec2(fisica.Fisica.screenToWorld$org_jbox2d_common_Vec2(new org.jbox2d.common.Vec2(gx, gy)));
+        };
         /**
-         * Set the gravity of the world. Use {@code world.setGravity(0,0);} to have a world without gravity.
+         * Set the gravity of the world. Use {@code world.setGravity(0,0);} to have a
+         * world without gravity.
          *
-         * @param {number} gx   the horizontal component of the gravity
-         * @param {number} gy   the vertical component of the gravity
+         * @param {number} gx
+         * the horizontal component of the gravity
+         * @param {number} gy
+         * the vertical component of the gravity
          */
         FWorld.prototype.setGravity = function (gx, gy) {
-            this.setGravity(fisica.Fisica.screenToWorld$org_jbox2d_common_Vec2(new org.jbox2d.common.Vec2(gx, gy)));
+            if (((typeof gx === 'number') || gx === null) && ((typeof gy === 'number') || gy === null)) {
+                return this.setGravity$float$float(gx, gy);
+            }
+            else if (((gx != null && gx instanceof org.jbox2d.common.Vec2) || gx === null) && gy === undefined) {
+                return this.setGravity$org_jbox2d_common_Vec2(gx);
+            }
+            else
+                throw new Error('invalid overload');
+        };
+        FWorld.prototype.setGravity$org_jbox2d_common_Vec2 = function (vector) {
+            _super.prototype.setGravity.call(this, vector);
         };
         FWorld.prototype.step$ = function () {
             this.step$float(Math.fround(1.0 / 60.0));
@@ -1887,10 +1831,14 @@ var fisica;
             _super.prototype.step.call(this, dt, iterationCount);
         };
         /**
-         * Advance the world simulation of given time, with a given number of iterations.  The larger the number of iterations, the more computationally expensive and precise it will be.  The default is 10 iterations.
+         * Advance the world simulation of given time, with a given number of
+         * iterations. The larger the number of iterations, the more computationally
+         * expensive and precise it will be. The default is 10 iterations.
          *
-         * @param {number} dt   the time to advance the world simulation
-         * @param {number} iterationCount   the number of iterations for the world simulation step
+         * @param {number} dt
+         * the time to advance the world simulation
+         * @param {number} iterationCount
+         * the number of iterations for the world simulation step
          */
         FWorld.prototype.step = function (dt, iterationCount) {
             if (((typeof dt === 'number') || dt === null) && ((typeof iterationCount === 'number') || iterationCount === null)) {
@@ -1917,10 +1865,14 @@ var fisica;
         /**
          * Returns the first object found at the given position.
          *
-         * @param {number} x   the horizontal component of the position
-         * @param {number} y   the vertical component of the position
-         * @param {boolean} getStatic   if {@code true} it will also get static objects that can be found at that position
-         * @return    {fisica.FBody} the body found at the given position
+         * @param {number} x
+         * the horizontal component of the position
+         * @param {number} y
+         * the vertical component of the position
+         * @param {boolean} getStatic
+         * if {@code true} it will also get static objects that can be found
+         * at that position
+         * @return {fisica.FBody} the body found at the given position
          */
         FWorld.prototype.getBody = function (x, y, getStatic) {
             if (((typeof x === 'number') || x === null) && ((typeof y === 'number') || y === null) && ((typeof getStatic === 'boolean') || getStatic === null)) {
@@ -1974,11 +1926,16 @@ var fisica;
         /**
          * Returns a list with all the bodies found at the given position.
          *
-         * @param {number} x   the horizontal component of the position
-         * @param {number} y   the vertical component of the position
-         * @param {boolean} getStatic   if {@code true} it will also get static objects that can be found at that position
-         * @param {number} count   the maximum number of bodies to be retrieved
-         * @return    {Array} an ArrayList (of FBody) of all bodies found at the given position
+         * @param {number} x
+         * the horizontal component of the position
+         * @param {number} y
+         * the vertical component of the position
+         * @param {boolean} getStatic
+         * if {@code true} it will also get static objects that can be found
+         * at that position
+         * @param {number} count
+         * the maximum number of bodies to be retrieved
+         * @return {Array} an ArrayList (of FBody) of all bodies found at the given position
          */
         FWorld.prototype.getBodies = function (x, y, getStatic, count) {
             if (((typeof x === 'number') || x === null) && ((typeof y === 'number') || y === null) && ((typeof getStatic === 'boolean') || getStatic === null) && ((typeof count === 'number') || count === null)) {
@@ -1996,7 +1953,7 @@ var fisica;
             else
                 throw new Error('invalid overload');
         };
-        FWorld.prototype.raycast = function (x1, y1, x2, y2, bodies, maxCount, solidShapes) {
+        FWorld.prototype.raycast$float$float$float$float$fisica_FBody_A$int$boolean = function (x1, y1, x2, y2, bodies, maxCount, solidShapes) {
             var segment = new org.jbox2d.collision.Segment();
             segment.p1.set(fisica.Fisica.screenToWorld$float$float(x1, y1));
             segment.p2.set(fisica.Fisica.screenToWorld$float$float(x2, y2));
@@ -2004,7 +1961,7 @@ var fisica;
                 a.push(null); return a; })(maxCount);
             var shapes = (function (s) { var a = []; while (s-- > 0)
                 a.push(null); return a; })(maxCount);
-            var count = this.raycast(segment, shapes, maxCount, solidShapes, null);
+            var count = this.raycast$org_jbox2d_collision_Segment$org_jbox2d_collision_shapes_Shape_A$int$boolean$java_lang_Object(segment, shapes, maxCount, solidShapes, null);
             for (var i = 0; i < count; ++i) {
                 var shape = shapes[i];
                 var shapeBody = shape.getBody();
@@ -2013,20 +1970,46 @@ var fisica;
             ;
             return count;
         };
-        FWorld.prototype.raycastOne = function (x1, y1, x2, y2, result, solidShapes) {
+        FWorld.prototype.raycast = function (x1, y1, x2, y2, bodies, maxCount, solidShapes) {
+            if (((typeof x1 === 'number') || x1 === null) && ((typeof y1 === 'number') || y1 === null) && ((typeof x2 === 'number') || x2 === null) && ((typeof y2 === 'number') || y2 === null) && ((bodies != null && bodies instanceof Array && (bodies.length == 0 || bodies[0] == null || (bodies[0] != null && bodies[0] instanceof fisica.FBody))) || bodies === null) && ((typeof maxCount === 'number') || maxCount === null) && ((typeof solidShapes === 'boolean') || solidShapes === null)) {
+                return this.raycast$float$float$float$float$fisica_FBody_A$int$boolean(x1, y1, x2, y2, bodies, maxCount, solidShapes);
+            }
+            else if (((x1 != null && x1 instanceof org.jbox2d.collision.Segment) || x1 === null) && ((y1 != null && y1 instanceof Array && (y1.length == 0 || y1[0] == null || (y1[0] != null && y1[0] instanceof org.jbox2d.collision.shapes.Shape))) || y1 === null) && ((typeof x2 === 'number') || x2 === null) && ((typeof y2 === 'boolean') || y2 === null) && ((bodies != null) || bodies === null) && maxCount === undefined && solidShapes === undefined) {
+                return this.raycast$org_jbox2d_collision_Segment$org_jbox2d_collision_shapes_Shape_A$int$boolean$java_lang_Object(x1, y1, x2, y2, bodies);
+            }
+            else
+                throw new Error('invalid overload');
+        };
+        FWorld.prototype.raycast$org_jbox2d_collision_Segment$org_jbox2d_collision_shapes_Shape_A$int$boolean$java_lang_Object = function (segment, shapes, maxCount, solidShapes, userData) {
+            return _super.prototype.raycast.call(this, segment, shapes, maxCount, solidShapes, userData);
+        };
+        FWorld.prototype.raycastOne$org_jbox2d_collision_Segment$org_jbox2d_common_RaycastResult$boolean$java_lang_Object = function (segment, result, solidShapes, userData) {
+            return _super.prototype.raycastOne.call(this, segment, result, solidShapes, userData);
+        };
+        FWorld.prototype.raycastOne$float$float$float$float$fisica_FRaycastResult$boolean = function (x1, y1, x2, y2, result, solidShapes) {
             var segment = new org.jbox2d.collision.Segment();
             segment.p1.set(fisica.Fisica.screenToWorld$float$float(x1, y1));
             segment.p2.set(fisica.Fisica.screenToWorld$float$float(x2, y2));
             var maxCount = 1;
             var shapes = (function (s) { var a = []; while (s-- > 0)
                 a.push(null); return a; })(maxCount);
-            var count = this.raycast(segment, shapes, maxCount, solidShapes, null);
+            var count = this.raycast$org_jbox2d_collision_Segment$org_jbox2d_collision_shapes_Shape_A$int$boolean$java_lang_Object(segment, shapes, maxCount, solidShapes, null);
             if (count === 0)
                 return null;
             var temp = new org.jbox2d.common.RaycastResult();
             shapes[0].testSegment(shapes[0].getBody().getMemberXForm(), temp, segment, 1.0);
             result.set(x1, y1, x2, y2, temp);
             return (shapes[0].getBody().getUserData());
+        };
+        FWorld.prototype.raycastOne = function (x1, y1, x2, y2, result, solidShapes) {
+            if (((typeof x1 === 'number') || x1 === null) && ((typeof y1 === 'number') || y1 === null) && ((typeof x2 === 'number') || x2 === null) && ((typeof y2 === 'number') || y2 === null) && ((result != null && result instanceof fisica.FRaycastResult) || result === null) && ((typeof solidShapes === 'boolean') || solidShapes === null)) {
+                return this.raycastOne$float$float$float$float$fisica_FRaycastResult$boolean(x1, y1, x2, y2, result, solidShapes);
+            }
+            else if (((x1 != null && x1 instanceof org.jbox2d.collision.Segment) || x1 === null) && ((y1 != null && y1 instanceof org.jbox2d.common.RaycastResult) || y1 === null) && ((typeof x2 === 'boolean') || x2 === null) && ((y2 != null) || y2 === null) && result === undefined && solidShapes === undefined) {
+                return this.raycastOne$org_jbox2d_collision_Segment$org_jbox2d_common_RaycastResult$boolean$java_lang_Object(x1, y1, x2, y2);
+            }
+            else
+                throw new Error('invalid overload');
         };
         return FWorld;
     }(org.jbox2d.dynamics.World));
@@ -2069,12 +2052,12 @@ var fisica;
                     return;
                 }
                 try {
-                    /* invoke */ this.m_world.m_contactStartedMethod.fn.apply(fisica.Fisica.parent(), [[contact]]);
+                    (this.m_world.m_contactStartedMethod).apply(fisica.Fisica.parent(), [contact]);
                 }
                 catch (e) {
                     console.error("Disabling contactStarted(ContactPoint point) because of an error.");
                     console.error(e.message, e);
-                    this.m_world.m_contactStartedMethod = null;
+                    this.m_world.m_contactStartedMethod = (null);
                 }
                 ;
             };
@@ -2102,12 +2085,12 @@ var fisica;
                     return;
                 }
                 try {
-                    /* invoke */ this.m_world.m_contactPersistedMethod.fn.apply(fisica.Fisica.parent(), [[contact]]);
+                    (this.m_world.m_contactPersistedMethod).apply(fisica.Fisica.parent(), [contact]);
                 }
                 catch (e) {
                     console.error("Disabling contactPersisted(FContact point) because of an error.");
                     console.error(e.message, e);
-                    this.m_world.m_contactPersistedMethod = null;
+                    this.m_world.m_contactPersistedMethod = (null);
                 }
                 ;
             };
@@ -2134,12 +2117,12 @@ var fisica;
                     return;
                 }
                 try {
-                    /* invoke */ this.m_world.m_contactEndedMethod.fn.apply(fisica.Fisica.parent(), [[contact]]);
+                    (this.m_world.m_contactEndedMethod).apply(fisica.Fisica.parent(), [contact]);
                 }
                 catch (e) {
                     console.error("Disabling contactEnded(FContact point) because of an error.");
                     console.error(e.message, e);
-                    this.m_world.m_contactEndedMethod = null;
+                    this.m_world.m_contactEndedMethod = (null);
                 }
                 ;
             };
@@ -2162,12 +2145,12 @@ var fisica;
                     return;
                 }
                 try {
-                    /* invoke */ this.m_world.m_contactResultMethod.fn.apply(fisica.Fisica.parent(), [[result]]);
+                    (this.m_world.m_contactResultMethod).apply(fisica.Fisica.parent(), [result]);
                 }
                 catch (e) {
                     console.error("Disabling contactResult(FContactResult result) because of an error.");
                     console.error(e.message, e);
-                    this.m_world.m_contactResultMethod = null;
+                    this.m_world.m_contactResultMethod = (null);
                 }
                 ;
             };
@@ -2288,21 +2271,21 @@ var fisica;
             this.m_body.m_linearDamping = this.m_linearDamping;
             this.m_body.m_angularDamping = this.m_angularDamping;
             if (this.m_rotatable) {
-                this.m_body.m_flags &= ~this.m_body.e_fixedRotationFlag;
+                this.m_body.m_flags &= ~org.jbox2d.dynamics.Body.e_fixedRotationFlag;
             }
             else {
-                this.m_body.m_flags |= this.m_body.e_fixedRotationFlag;
+                this.m_body.m_flags |= org.jbox2d.dynamics.Body.e_fixedRotationFlag;
             }
             if (this.m_allowSleep) {
-                this.m_body.m_flags |= this.m_body.e_allowSleepFlag;
+                this.m_body.m_flags |= org.jbox2d.dynamics.Body.e_allowSleepFlag;
             }
             else {
-                this.m_body.m_flags &= ~this.m_body.e_allowSleepFlag;
+                this.m_body.m_flags &= ~org.jbox2d.dynamics.Body.e_allowSleepFlag;
             }
             this.m_body.setBullet(this.m_bullet);
             this.m_body.applyForce(this.m_force, this.m_body.getWorldCenter());
             this.m_body.applyTorque(this.m_torque);
-            this.m_body.m_type = this.m_static ? this.m_body.e_staticType : this.m_body.e_dynamicType;
+            this.m_body.m_type = this.m_static ? org.jbox2d.dynamics.Body.e_staticType : org.jbox2d.dynamics.Body.e_dynamicType;
             this.updateMass();
         };
         FBody.prototype.setState = function (b) {
@@ -2376,8 +2359,8 @@ var fisica;
             applet.pushStyle();
             applet.pushMatrix();
             this.applyMatrix(applet);
-            applet.ellipseMode(processing.core.PConstants.CENTER);
-            applet.rectMode(processing.core.PConstants.CENTER);
+            applet.ellipseMode(PConstants.CENTER);
+            applet.rectMode(PConstants.CENTER);
             this.appletFillStroke(applet);
         };
         FBody.prototype.postDraw = function (applet) {
@@ -2388,8 +2371,8 @@ var fisica;
             applet.pushStyle();
             applet.pushMatrix();
             this.applyMatrix(applet);
-            applet.ellipseMode(processing.core.PConstants.CENTER);
-            applet.rectMode(processing.core.PConstants.CENTER);
+            applet.ellipseMode(PConstants.CENTER);
+            applet.rectMode(PConstants.CENTER);
             applet.strokeWeight(1);
             if (this.m_body != null) {
                 applet.fill(0, 200, 0, 50);
@@ -2424,7 +2407,7 @@ var fisica;
                 applet.pushStyle();
                 applet.stroke(120, 40);
                 applet.noFill();
-                applet.rectMode(processing.core.PConstants.CORNERS);
+                applet.rectMode(PConstants.CORNERS);
                 var aabb = this.getAABB();
                 var lower = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(aabb.lowerBound);
                 var upper = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(aabb.upperBound);
@@ -2439,7 +2422,7 @@ var fisica;
                 applet.popStyle();
                 applet.popMatrix();
                 var infobox = "";
-                var df = new java.text.DecimalFormat();
+                var df = new Object();
                 df.setMaximumFractionDigits(1);
                 var bb = this.getBB();
                 var dim = new org.jbox2d.common.Vec2(bb.upperBound);
@@ -3029,7 +3012,7 @@ var fisica;
          */
         FBody.prototype.setStatic = function (value) {
             if (this.m_body != null) {
-                this.m_body.m_type = value ? this.m_body.e_staticType : this.m_body.e_dynamicType;
+                this.m_body.m_type = value ? org.jbox2d.dynamics.Body.e_staticType : org.jbox2d.dynamics.Body.e_dynamicType;
             }
             this.m_static = value;
             this.updateMass();
@@ -3103,10 +3086,10 @@ var fisica;
         FBody.prototype.setRotatable = function (rotatable) {
             if (this.m_body != null) {
                 if (rotatable) {
-                    this.m_body.m_flags &= ~this.m_body.e_fixedRotationFlag;
+                    this.m_body.m_flags &= ~org.jbox2d.dynamics.Body.e_fixedRotationFlag;
                 }
                 else {
-                    this.m_body.m_flags |= this.m_body.e_fixedRotationFlag;
+                    this.m_body.m_flags |= org.jbox2d.dynamics.Body.e_fixedRotationFlag;
                 }
             }
             this.m_rotatable = rotatable;
@@ -3119,10 +3102,10 @@ var fisica;
         FBody.prototype.setAllowSleeping = function (allowSleep) {
             if (this.m_body != null) {
                 if (allowSleep) {
-                    this.m_body.m_flags |= this.m_body.e_allowSleepFlag;
+                    this.m_body.m_flags |= org.jbox2d.dynamics.Body.e_allowSleepFlag;
                 }
                 else {
-                    this.m_body.m_flags &= ~this.m_body.e_allowSleepFlag;
+                    this.m_body.m_flags &= ~org.jbox2d.dynamics.Body.e_allowSleepFlag;
                     this.m_body.wakeUp();
                 }
             }
@@ -3289,8 +3272,8 @@ var fisica;
         FJoint.prototype.preDraw = function (applet) {
             applet.pushStyle();
             applet.pushMatrix();
-            applet.ellipseMode(processing.core.PConstants.CENTER);
-            applet.rectMode(processing.core.PConstants.CENTER);
+            applet.ellipseMode(PConstants.CENTER);
+            applet.rectMode(PConstants.CENTER);
             this.appletFillStroke(applet);
         };
         FJoint.prototype.postDraw = function (applet) {
@@ -3300,8 +3283,8 @@ var fisica;
         FJoint.prototype.preDrawDebug = function (applet) {
             applet.pushStyle();
             applet.pushMatrix();
-            applet.ellipseMode(processing.core.PConstants.CENTER);
-            applet.rectMode(processing.core.PConstants.CENTER);
+            applet.ellipseMode(PConstants.CENTER);
+            applet.rectMode(PConstants.CENTER);
             applet.strokeWeight(1);
             applet.fill(80, 50);
             applet.stroke(80, 150);
@@ -3455,7 +3438,10 @@ var fisica;
 })(fisica || (fisica = {}));
 (function (fisica) {
     /**
-     * Constructs a blob body that can be added to a world.  It creates an empty blob, before adding the blob to the world use {@link #vertex(float,float) vertex} or {@link #setAsCircle(float) setAsCircle} to define the initial shape of the blob.
+     * Constructs a blob body that can be added to a world. It creates an empty
+     * blob, before adding the blob to the world use {@link #vertex(float,float)
+     * vertex} or {@link #setAsCircle(float) setAsCircle} to define the initial
+     * shape of the blob.
      * @class
      * @extends fisica.FBody
      */
@@ -3524,18 +3510,23 @@ var fisica;
             ;
         };
         /**
-         * Adds a vertex body to the initial shape of the blob.  This method must be called before adding the body to the world.
+         * Adds a vertex body to the initial shape of the blob. This method must be
+         * called before adding the body to the world.
          *
-         * @param {fisica.FBody} b  b the body to be added
+         * @param {fisica.FBody} b
+         * b the body to be added
          */
         FBlob.prototype.addVertexBody = function (b) {
             /* add */ (this.m_vertexBodies.push(b) > 0);
         };
         /**
-         * Adds a vertex to the initial shape of the blob.  This method must be called before adding the body to the world.
+         * Adds a vertex to the initial shape of the blob. This method must be called
+         * before adding the body to the world.
          *
-         * @param {number} x  x coordinate of the vertex to be added
-         * @param {number} y  y coordinate of the vertex to be added
+         * @param {number} x
+         * x coordinate of the vertex to be added
+         * @param {number} y
+         * y coordinate of the vertex to be added
          */
         FBlob.prototype.vertex = function (x, y) {
             /* add */ (this.m_vertices.push(fisica.Fisica.screenToWorld$float$float(x, y)) > 0);
@@ -3543,8 +3534,9 @@ var fisica;
         /**
          * Gets the x coordinate of the ith vertex of the initial shape of the blob.
          *
-         * @param {number} i  index of the vertex to retrieve
-         * @return  {number} the x coordinate of the vertex to retrieve
+         * @param {number} i
+         * index of the vertex to retrieve
+         * @return {number} the x coordinate of the vertex to retrieve
          */
         FBlob.prototype.getVertexX = function (i) {
             return fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_vertices[i]).x;
@@ -3552,8 +3544,9 @@ var fisica;
         /**
          * Gets the y coordinate of the ith vertex of the initial shape of the blob.
          *
-         * @param {number} i  index of the vertex to retrieve
-         * @return  {number} the y coordinate of the vertex to retrieve
+         * @param {number} i
+         * index of the vertex to retrieve
+         * @return {number} the y coordinate of the vertex to retrieve
          */
         FBlob.prototype.getVertexY = function (i) {
             return fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_vertices[i]).y;
@@ -3561,20 +3554,27 @@ var fisica;
         FBlob.prototype.setAsCircle$float$float$float$int = function (x, y, size, vertexCount) {
             /* clear */ (this.m_vertices.length = 0);
             for (var i = 0; i < vertexCount; i++) {
-                var angle = fisica.Fisica.parent().map(i, 0, vertexCount, 0, processing.core.PConstants.TWO_PI);
-                var vx = Math.fround(x + Math.fround(Math.fround(size / 2) * fisica.Fisica.parent().sin(angle)));
-                var vy = Math.fround(y + Math.fround(Math.fround(size / 2) * fisica.Fisica.parent().cos(angle)));
+                var angle = PApplet.map(i, 0, vertexCount, 0, PConstants.TWO_PI);
+                var vx = Math.fround(x + Math.fround(Math.fround(size / 2) * PApplet.sin(angle)));
+                var vy = Math.fround(y + Math.fround(Math.fround(size / 2) * PApplet.cos(angle)));
                 this.vertex(vx, vy);
             }
             ;
         };
         /**
-         * Sets the initial shape of the blob to a circle.  This method removes all the previous vertices tha may have been added by the use of the {@link #vertex(float,float) vertex}.  This method must be called before adding the body to the world.
+         * Sets the initial shape of the blob to a circle. This method removes all the
+         * previous vertices tha may have been added by the use of the
+         * {@link #vertex(float,float) vertex}. This method must be called before adding
+         * the body to the world.
          *
-         * @param {number} x  x coordinate of the position of the circle
-         * @param {number} y  y coordinate of the position of the circle
-         * @param {number} size  size of the circle
-         * @param {number} vertexCount  number of vertices of the circle
+         * @param {number} x
+         * x coordinate of the position of the circle
+         * @param {number} y
+         * y coordinate of the position of the circle
+         * @param {number} size
+         * size of the circle
+         * @param {number} vertexCount
+         * number of vertices of the circle
          */
         FBlob.prototype.setAsCircle = function (x, y, size, vertexCount) {
             if (((typeof x === 'number') || x === null) && ((typeof y === 'number') || y === null) && ((typeof size === 'number') || size === null) && ((typeof vertexCount === 'number') || vertexCount === null)) {
@@ -3602,7 +3602,8 @@ var fisica;
             this.setAsCircle$float$float$float$int(0, 0, size, vertexCount);
         };
         /**
-         * Returns the size of the circular vertices of the blob.  This method must be called before the body is added to the world.
+         * Returns the size of the circular vertices of the blob. This method must be
+         * called before the body is added to the world.
          *
          * @return {number} size of the circular vertices of the blob
          */
@@ -3610,9 +3611,11 @@ var fisica;
             return fisica.Fisica.worldToScreen$float(this.m_vertexSize);
         };
         /**
-         * Sets the size of the circular vertices of the blob.  This method must be called before the body is added to the world.
+         * Sets the size of the circular vertices of the blob. This method must be
+         * called before the body is added to the world.
          *
-         * @param {number} size  size of the circular vertices of the blob
+         * @param {number} size
+         * size of the circular vertices of the blob
          */
         FBlob.prototype.setVertexSize = function (size) {
             this.m_vertexSize = fisica.Fisica.screenToWorld$float(size);
@@ -3626,9 +3629,11 @@ var fisica;
             return this.m_vertexBodies;
         };
         /**
-         * Sets the frequency of the springs used to maintain the volume defined by the vertices constant.
+         * Sets the frequency of the springs used to maintain the volume defined by the
+         * vertices constant.
          *
-         * @param {number} frequency  the frequency of the springs of the constant volume joint
+         * @param {number} frequency
+         * the frequency of the springs of the constant volume joint
          */
         FBlob.prototype.setFrequency = function (frequency) {
             if (this.m_joint != null) {
@@ -3637,9 +3642,11 @@ var fisica;
             this.m_frequency = frequency;
         };
         /**
-         * Sets the damping of the springs used to maintain the volume defined by the vertices constant.
+         * Sets the damping of the springs used to maintain the volume defined by the
+         * vertices constant.
          *
-         * @param {number} damping  the damping of the springs of the constant volume joint
+         * @param {number} damping
+         * the damping of the springs of the constant volume joint
          */
         FBlob.prototype.setDamping = function (damping) {
             if (this.m_joint != null) {
@@ -3840,7 +3847,7 @@ var fisica;
             this.m_width = fisica.Fisica.screenToWorld$float(width);
             this.recreateInWorld();
         };
-        FBox.prototype.draw$processing_core_PGraphics = function (applet) {
+        FBox.prototype.draw = function (applet) {
             this.preDraw(applet);
             if (this.m_image != null) {
                 this.drawImage(applet);
@@ -3850,30 +3857,10 @@ var fisica;
             }
             this.postDraw(applet);
         };
-        FBox.prototype.draw = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.draw$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.draw$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
-        };
-        FBox.prototype.drawDebug$processing_core_PGraphics = function (applet) {
+        FBox.prototype.drawDebug = function (applet) {
             this.preDrawDebug(applet);
             applet.rect(0, 0, this.getWidth(), this.getHeight());
             this.postDrawDebug(applet);
-        };
-        FBox.prototype.drawDebug = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.drawDebug$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.drawDebug$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
         };
         return FBox;
     }(fisica.FBody));
@@ -3931,7 +3918,7 @@ var fisica;
             this.m_size = fisica.Fisica.screenToWorld$float(size);
             this.recreateInWorld();
         };
-        FCircle.prototype.draw$processing_core_PGraphics = function (applet) {
+        FCircle.prototype.draw = function (applet) {
             this.preDraw(applet);
             if (this.m_image != null) {
                 this.drawImage(applet);
@@ -3941,31 +3928,11 @@ var fisica;
             }
             this.postDraw(applet);
         };
-        FCircle.prototype.draw = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.draw$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.draw$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
-        };
-        FCircle.prototype.drawDebug$processing_core_PGraphics = function (applet) {
+        FCircle.prototype.drawDebug = function (applet) {
             this.preDrawDebug(applet);
             applet.ellipse(0, 0, this.getSize(), this.getSize());
             applet.line(0, 0, Math.fround(this.getSize() / 2), 0);
             this.postDrawDebug(applet);
-        };
-        FCircle.prototype.drawDebug = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.drawDebug$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.drawDebug$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
         };
         return FCircle;
     }(fisica.FBody));
@@ -3998,46 +3965,26 @@ var fisica;
         FCompound.prototype.addBody = function (body) {
             /* add */ (this.m_shapes.push(body) > 0);
         };
-        FCompound.prototype.draw$processing_core_PGraphics = function (applet) {
+        FCompound.prototype.draw = function (applet) {
             this.preDraw(applet);
             if (this.m_image != null) {
                 this.drawImage(applet);
             }
             else {
                 for (var i = 0; i < this.m_shapes.length; i++) {
-                    this.m_shapes[i].draw$processing_core_PGraphics(applet);
+                    this.m_shapes[i].draw(applet);
                 }
                 ;
             }
             this.postDraw(applet);
         };
-        FCompound.prototype.draw = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.draw$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.draw$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
-        };
-        FCompound.prototype.drawDebug$processing_core_PGraphics = function (applet) {
+        FCompound.prototype.drawDebug = function (applet) {
             this.preDrawDebug(applet);
             for (var i = 0; i < this.m_shapes.length; i++) {
-                this.m_shapes[i].drawDebug$processing_core_PGraphics(applet);
+                this.m_shapes[i].drawDebug(applet);
             }
             ;
             this.postDrawDebug(applet);
-        };
-        FCompound.prototype.drawDebug = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.drawDebug$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.drawDebug$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
         };
         return FCompound;
     }(fisica.FBody));
@@ -4102,7 +4049,7 @@ var fisica;
             this.m_end = fisica.Fisica.screenToWorld$float$float(x, y);
             this.recreateInWorld();
         };
-        FLine.prototype.draw$processing_core_PGraphics = function (applet) {
+        FLine.prototype.draw = function (applet) {
             this.preDraw(applet);
             if (this.m_image != null) {
                 this.drawImage(applet);
@@ -4114,32 +4061,12 @@ var fisica;
             }
             this.postDraw(applet);
         };
-        FLine.prototype.draw = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.draw$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.draw$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
-        };
-        FLine.prototype.drawDebug$processing_core_PGraphics = function (applet) {
+        FLine.prototype.drawDebug = function (applet) {
             this.preDrawDebug(applet);
             var tempStart = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_start);
             var tempEnd = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_end);
             applet.line(tempStart.x, tempStart.y, tempEnd.x, tempEnd.y);
             this.postDrawDebug(applet);
-        };
-        FLine.prototype.drawDebug = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.drawDebug$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.drawDebug$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
         };
         return FLine;
     }(fisica.FBody));
@@ -4211,7 +4138,7 @@ var fisica;
             ;
             return pd;
         };
-        FPoly.prototype.draw$processing_core_PGraphics = function (applet) {
+        FPoly.prototype.draw = function (applet) {
             this.preDraw(applet);
             if (this.m_image != null) {
                 this.drawImage(applet);
@@ -4224,7 +4151,7 @@ var fisica;
                 }
                 ;
                 if (this.m_closed) {
-                    applet.endShape(processing.core.PConstants.CLOSE);
+                    applet.endShape(PConstants.CLOSE);
                 }
                 else {
                     applet.endShape();
@@ -4232,17 +4159,7 @@ var fisica;
             }
             this.postDraw(applet);
         };
-        FPoly.prototype.draw = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.draw$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.draw$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
-        };
-        FPoly.prototype.drawDebug$processing_core_PGraphics = function (applet) {
+        FPoly.prototype.drawDebug = function (applet) {
             this.preDrawDebug(applet);
             var b = this.getBox2dBody();
             if (b != null) {
@@ -4259,7 +4176,7 @@ var fisica;
                         applet.vertex(v.x, v.y);
                     }
                     ;
-                    applet.endShape(processing.core.PConstants.CLOSE);
+                    applet.endShape(PConstants.CLOSE);
                     var c = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(ps.getCentroid());
                     applet.ellipse(c.x, c.y, 2, 2);
                     ss = ss.getNext();
@@ -4274,22 +4191,12 @@ var fisica;
             }
             ;
             if (this.m_closed) {
-                applet.endShape(processing.core.PConstants.CLOSE);
+                applet.endShape(PConstants.CLOSE);
             }
             else {
                 applet.endShape();
             }
             this.postDrawDebug(applet);
-        };
-        FPoly.prototype.drawDebug = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.drawDebug$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.drawDebug$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
         };
         return FPoly;
     }(fisica.FBody));
@@ -4359,7 +4266,7 @@ var fisica;
             this.m_frequency = frequency;
         };
         FConstantVolumeJoint.prototype.getCentroid = function () {
-            var centroid = new processing.core.PVector(0, 0);
+            var centroid = new PVector(0, 0);
             var signedArea = 0.0;
             var x0 = 0.0;
             var y0 = 0.0;
@@ -4391,7 +4298,7 @@ var fisica;
             centroid.y /= (6.0 * signedArea);
             return centroid;
         };
-        FConstantVolumeJoint.prototype.draw$processing_core_PGraphics = function (applet) {
+        FConstantVolumeJoint.prototype.draw = function (applet) {
             this.preDraw(applet);
             if (this.m_image != null) {
                 applet.pushMatrix();
@@ -4407,22 +4314,12 @@ var fisica;
                         applet.vertex(this.m_bodies[i].getX(), this.m_bodies[i].getY());
                     }
                     ;
-                    applet.endShape(processing.core.PConstants.CLOSE);
+                    applet.endShape(PConstants.CLOSE);
                 }
             }
             this.postDraw(applet);
         };
-        FConstantVolumeJoint.prototype.draw = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.draw$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.draw$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
-        };
-        FConstantVolumeJoint.prototype.drawDebug$processing_core_PGraphics = function (applet) {
+        FConstantVolumeJoint.prototype.drawDebug = function (applet) {
             this.preDrawDebug(applet);
             if (this.m_bodies.length > 0) {
                 applet.beginShape();
@@ -4430,23 +4327,13 @@ var fisica;
                     applet.vertex(this.m_bodies[i].getX(), this.m_bodies[i].getY());
                 }
                 ;
-                applet.endShape(processing.core.PConstants.CLOSE);
+                applet.endShape(PConstants.CLOSE);
                 for (var i = 0; i < this.m_bodies.length; i++) {
                     applet.ellipse(this.m_bodies[i].getX(), this.m_bodies[i].getY(), 5, 5);
                 }
                 ;
             }
             this.postDrawDebug(applet);
-        };
-        FConstantVolumeJoint.prototype.drawDebug = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.drawDebug$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.drawDebug$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
         };
         return FConstantVolumeJoint;
     }(fisica.FJoint));
@@ -4630,24 +4517,14 @@ var fisica;
             }
             return fisica.Fisica.worldToScreen$float(this.m_anchor2.y);
         };
-        FDistanceJoint.prototype.draw$processing_core_PGraphics = function (applet) {
+        FDistanceJoint.prototype.draw = function (applet) {
             this.preDraw(applet);
             applet.ellipse(this.getAnchor1X(), this.getAnchor1Y(), 5, 5);
             applet.line(this.getAnchor1X(), this.getAnchor1Y(), this.getAnchor2X(), this.getAnchor2Y());
             applet.ellipse(this.getAnchor2X(), this.getAnchor2Y(), 5, 5);
             this.postDraw(applet);
         };
-        FDistanceJoint.prototype.draw = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.draw$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.draw$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
-        };
-        FDistanceJoint.prototype.drawDebug$processing_core_PGraphics = function (applet) {
+        FDistanceJoint.prototype.drawDebug = function (applet) {
             this.preDrawDebug(applet);
             var numSpins = ((((Math.fround((Math.fround(this.m_length - 20)) / 6)) | 0) / 2 | 0)) * 2 + 1;
             if (numSpins <= 0) {
@@ -4656,8 +4533,8 @@ var fisica;
             else {
                 applet.pushMatrix();
                 applet.translate(this.getAnchor1X(), this.getAnchor1Y());
-                var ang = fisica.Fisica.parent().atan2(Math.fround(this.getAnchor2Y() - this.getAnchor1Y()), Math.fround(this.getAnchor2X() - this.getAnchor1X()));
-                var dist = fisica.Fisica.parent().dist(this.getAnchor1X(), this.getAnchor1Y(), this.getAnchor2X(), this.getAnchor2Y());
+                var ang = PApplet.atan2(Math.fround(this.getAnchor2Y() - this.getAnchor1Y()), Math.fround(this.getAnchor2X() - this.getAnchor1X()));
+                var dist = PApplet.dist(this.getAnchor1X(), this.getAnchor1Y(), this.getAnchor2X(), this.getAnchor2Y());
                 applet.rotate(ang);
                 if (this.m_length > 0) {
                     applet.rect(Math.fround(dist / 2), 0, this.m_length, 12);
@@ -4670,12 +4547,12 @@ var fisica;
                 var x = void 0;
                 var y = void 0;
                 for (var i = 0; i < numSpins; i++) {
-                    x = fisica.Fisica.parent().map(i + 1, 0, numSpins + 1, 10, Math.fround(dist - 10));
+                    x = PApplet.map(i + 1, 0, numSpins + 1, 10, Math.fround(dist - 10));
                     y = ((i % 2) * 2 - 1) * 4;
                     applet.vertex(x, y);
                 }
                 ;
-                x = fisica.Fisica.parent().map(numSpins + 1, 0, numSpins + 1, 10, Math.fround(dist - 10));
+                x = PApplet.map(numSpins + 1, 0, numSpins + 1, 10, Math.fround(dist - 10));
                 applet.vertex(x, 0);
                 applet.vertex(dist, 0);
                 applet.endShape();
@@ -4688,16 +4565,6 @@ var fisica;
             applet.ellipse(this.getAnchor2X(), this.getAnchor2Y(), 5, 5);
             applet.popStyle();
             this.postDrawDebug(applet);
-        };
-        FDistanceJoint.prototype.drawDebug = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.drawDebug$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.drawDebug$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
         };
         return FDistanceJoint;
     }(fisica.FJoint));
@@ -4756,17 +4623,7 @@ var fisica;
             this.m_ratio = ratio;
             this.updateRatio();
         };
-        FGearJoint.prototype.draw$processing_core_PGraphics = function (applet) {
-        };
         FGearJoint.prototype.draw = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.draw$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.draw$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
         };
         return FGearJoint;
     }(fisica.FJoint));
@@ -4935,37 +4792,17 @@ var fisica;
             }
             return fisica.Fisica.worldToScreen$float(this.m_anchor.y);
         };
-        FMouseJoint.prototype.draw$processing_core_PGraphics = function (applet) {
+        FMouseJoint.prototype.draw = function (applet) {
             this.preDraw(applet);
             applet.line(this.getAnchorX(), this.getAnchorY(), this.getTargetX(), this.getTargetY());
             this.postDraw(applet);
         };
-        FMouseJoint.prototype.draw = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.draw$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.draw$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
-        };
-        FMouseJoint.prototype.drawDebug$processing_core_PGraphics = function (applet) {
+        FMouseJoint.prototype.drawDebug = function (applet) {
             this.preDrawDebug(applet);
             applet.line(this.getAnchorX(), this.getAnchorY(), this.getTargetX(), this.getTargetY());
             applet.ellipse(this.getAnchorX(), this.getAnchorY(), 5, 5);
             applet.ellipse(this.getTargetX(), this.getTargetY(), 10, 10);
             this.postDrawDebug(applet);
-        };
-        FMouseJoint.prototype.drawDebug = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.drawDebug$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.drawDebug$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
         };
         return FMouseJoint;
     }(fisica.FJoint));
@@ -5092,7 +4929,7 @@ var fisica;
          * @param {number} y  the vertical coordinate of the axis in global coordinates, relative to the center of the canvas
          */
         FPrismaticJoint.prototype.setAxis = function (x, y) {
-            var d = fisica.Fisica.parent().dist(0, 0, x, y);
+            var d = PApplet.dist(0, 0, x, y);
             this.m_axis.set(Math.fround(x / d), Math.fround(y / d));
             this.updateLocalAxis();
         };
@@ -5161,24 +4998,14 @@ var fisica;
             }
             this.m_enableLimit = value;
         };
-        FPrismaticJoint.prototype.draw$processing_core_PGraphics = function (applet) {
+        FPrismaticJoint.prototype.draw = function (applet) {
             this.preDraw(applet);
             applet.line(this.getAnchorX(), this.getAnchorY(), this.getBody1().getX(), this.getBody1().getY());
             applet.line(this.getAnchorX(), this.getAnchorY(), this.getBody2().getX(), this.getBody2().getY());
             applet.rect(this.getAnchorX(), this.getAnchorY(), 10, 10);
             this.postDraw(applet);
         };
-        FPrismaticJoint.prototype.draw = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.draw$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.draw$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
-        };
-        FPrismaticJoint.prototype.drawDebug$processing_core_PGraphics = function (applet) {
+        FPrismaticJoint.prototype.drawDebug = function (applet) {
             this.preDrawDebug(applet);
             var lineHalfLength = 150;
             applet.pushStyle();
@@ -5191,7 +5018,7 @@ var fisica;
             applet.rotate(this.getBody1().getRotation());
             applet.translate(fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_localAnchor1).x, fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_localAnchor1).y);
             applet.translate(-fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_localAnchor2).x, -fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_localAnchor2).y);
-            applet.rotate(fisica.Fisica.parent().atan2(this.m_axis.y, this.m_axis.x));
+            applet.rotate(PApplet.atan2(this.m_axis.y, this.m_axis.x));
             applet.line(-lineHalfLength, 0, lineHalfLength, 0);
             applet.beginShape();
             applet.vertex(lineHalfLength - 4, -4);
@@ -5205,7 +5032,7 @@ var fisica;
             applet.endShape();
             applet.popStyle();
             if (this.m_enableLimit) {
-                applet.rectMode(processing.core.PConstants.CORNERS);
+                applet.rectMode(PConstants.CORNERS);
                 applet.rect(fisica.Fisica.worldToScreen$float(this.m_lowerTranslation), -4, fisica.Fisica.worldToScreen$float(this.m_upperTranslation), 4);
             }
             applet.popMatrix();
@@ -5216,16 +5043,6 @@ var fisica;
             applet.ellipse(this.getBody2().getX(), this.getBody2().getY(), 5, 5);
             applet.popStyle();
             this.postDrawDebug(applet);
-        };
-        FPrismaticJoint.prototype.drawDebug = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.drawDebug$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.drawDebug$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
         };
         return FPrismaticJoint;
     }(fisica.FJoint));
@@ -5469,39 +5286,19 @@ var fisica;
         FRevoluteJoint.prototype.setReferenceAngle = function (ang) {
             this.m_referenceAngle = ang;
         };
-        FRevoluteJoint.prototype.draw$processing_core_PGraphics = function (applet) {
+        FRevoluteJoint.prototype.draw = function (applet) {
             this.preDraw(applet);
             applet.line(this.getAnchorX(), this.getAnchorY(), this.getBody1().getX(), this.getBody1().getY());
             applet.line(this.getAnchorX(), this.getAnchorY(), this.getBody2().getX(), this.getBody2().getY());
             applet.ellipse(this.getAnchorX(), this.getAnchorY(), 10, 10);
             this.postDraw(applet);
         };
-        FRevoluteJoint.prototype.draw = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.draw$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.draw$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
-        };
-        FRevoluteJoint.prototype.drawDebug$processing_core_PGraphics = function (applet) {
+        FRevoluteJoint.prototype.drawDebug = function (applet) {
             this.preDrawDebug(applet);
             applet.line(this.getAnchorX(), this.getAnchorY(), this.getBody1().getX(), this.getBody1().getY());
             applet.line(this.getAnchorX(), this.getAnchorY(), this.getBody2().getX(), this.getBody2().getY());
             applet.ellipse(this.getAnchorX(), this.getAnchorY(), 10, 10);
             this.postDrawDebug(applet);
-        };
-        FRevoluteJoint.prototype.drawDebug = function (applet) {
-            if (((applet != null && applet instanceof processing.core.PGraphics) || applet === null)) {
-                return this.drawDebug$processing_core_PGraphics(applet);
-            }
-            else if (((applet != null && applet instanceof processing.core.PApplet) || applet === null)) {
-                return this.drawDebug$processing_core_PApplet(applet);
-            }
-            else
-                throw new Error('invalid overload');
         };
         return FRevoluteJoint;
     }(fisica.FJoint));
