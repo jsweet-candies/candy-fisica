@@ -107,31 +107,6 @@ public abstract class FBody extends FDrawable {
     m_world = world;
     m_body = world.createBody(bd);
 
-    ShapeDef sd = getProcessedShapeDef();
-    if (sd != null) {
-        processBody(m_body, sd);
-    }
-
-    ArrayList bodies = getBodies();
-    ArrayList sds = getShapeDefs();
-    // HACK: fix the compounds of polygon bodies for now, this should change with the new version of jBox2d
-    if (sds.size() != bodies.size()) {
-        for (int i=0; i<sds.size(); i++) {
-            sd = (ShapeDef)(sds.get(i));
-            if (sd != null) {
-                processBody(m_body, sd);
-            }
-        }
-    } else {
-        for (int i=0; i<sds.size(); i++) {
-            FBody b = (FBody)(bodies.get(i));
-            sd = (ShapeDef)(sds.get(i));
-            if (sd != null) {
-                b.processBody(m_body, sd);
-            }
-        }    
-    }
-
     m_body.m_userData = this;
     m_body.setXForm(m_position, m_angle);
     m_body.setLinearVelocity(m_linearVelocity);
@@ -158,8 +133,33 @@ public abstract class FBody extends FDrawable {
     m_body.applyTorque(m_torque);
 
     m_body.m_type = m_static ? Body.e_staticType : Body.e_dynamicType;
-    updateMass();
+    
+    ShapeDef sd = getProcessedShapeDef();
+    if (sd != null) {
+        processBody(m_body, sd);
+    }
 
+    ArrayList bodies = getBodies();
+    ArrayList sds = getShapeDefs();
+    // HACK: fix the compounds of polygon bodies for now, this should change with the new version of jBox2d
+    if (sds.size() != bodies.size()) {
+        for (int i=0; i<sds.size(); i++) {
+            sd = (ShapeDef)(sds.get(i));
+            if (sd != null) {
+                processBody(m_body, sd);
+            }
+        }
+    } else {
+        for (int i=0; i<sds.size(); i++) {
+            FBody b = (FBody)(bodies.get(i));
+            sd = (ShapeDef)(sds.get(i));
+            if (sd != null) {
+                b.processBody(m_body, sd);
+            }
+        }    
+    }
+
+    updateMass();
   }
 
   public void setState(FBody b) {

@@ -324,7 +324,7 @@ var fisica;
         function FContactID(id, b1, b2) {
             var _this = this;
             if (((id != null && id instanceof org.jbox2d.collision.ContactID) || id === null) && ((b1 != null && b1 instanceof fisica.FBody) || b1 === null) && ((b2 != null && b2 instanceof fisica.FBody) || b2 === null)) {
-                var __args = Array.prototype.slice.call(arguments);
+                var __args = arguments;
                 if (this.m_id === undefined)
                     this.m_id = null;
                 if (this.m_b1 === undefined)
@@ -344,7 +344,7 @@ var fisica;
                 })();
             }
             else if (((id != null && id instanceof fisica.FContactID) || id === null) && b1 === undefined && b2 === undefined) {
-                var __args = Array.prototype.slice.call(arguments);
+                var __args = arguments;
                 var fid_1 = __args[0];
                 if (this.m_id === undefined)
                     this.m_id = null;
@@ -1185,7 +1185,7 @@ var fisica;
         function FWorld(topLeftX, topLeftY, bottomRightX, bottomRightY) {
             var _this = this;
             if (((typeof topLeftX === 'number') || topLeftX === null) && ((typeof topLeftY === 'number') || topLeftY === null) && ((typeof bottomRightX === 'number') || bottomRightX === null) && ((typeof bottomRightY === 'number') || bottomRightY === null)) {
-                var __args = Array.prototype.slice.call(arguments);
+                var __args = arguments;
                 _this = _super.call(this, new org.jbox2d.collision.AABB(fisica.Fisica.screenToWorld$org_jbox2d_common_Vec2(new org.jbox2d.common.Vec2(topLeftX, topLeftY)), fisica.Fisica.screenToWorld$org_jbox2d_common_Vec2(new org.jbox2d.common.Vec2(bottomRightX, bottomRightY))), fisica.Fisica.screenToWorld$org_jbox2d_common_Vec2(new org.jbox2d.common.Vec2(0.0, 10.0)), true) || this;
                 if (_this.left === undefined)
                     _this.left = null;
@@ -1289,9 +1289,9 @@ var fisica;
                 })();
             }
             else if (topLeftX === undefined && topLeftY === undefined && bottomRightX === undefined && bottomRightY === undefined) {
-                var __args = Array.prototype.slice.call(arguments);
+                var __args = arguments;
                 {
-                    var __args_1 = Array.prototype.slice.call(arguments);
+                    var __args_1 = arguments;
                     var topLeftX_1 = -fisica.Fisica.parent().width;
                     var topLeftY_1 = -fisica.Fisica.parent().height;
                     var bottomRightX_1 = 2 * fisica.Fisica.parent().width;
@@ -1530,6 +1530,9 @@ var fisica;
             }
             ;
         };
+        FWorld.prototype.draw$ = function () {
+            this.draw$def_processing_core_PGraphics(fisica.Fisica.parentGraphics());
+        };
         FWorld.prototype.draw$def_processing_core_PGraphics = function (graphics) {
             this.processActions();
             for (var i = 0; i < this.m_fbodies.length; i++) {
@@ -1597,9 +1600,6 @@ var fisica;
             }
             else
                 throw new Error('invalid overload');
-        };
-        FWorld.prototype.draw$ = function () {
-            this.draw$def_processing_core_PGraphics(fisica.Fisica.parentGraphics());
         };
         FWorld.prototype.drawDebug$ = function () {
             this.drawDebug$def_processing_core_PGraphics(fisica.Fisica.parentGraphics());
@@ -2239,6 +2239,28 @@ var fisica;
             bd.isBullet = this.m_bullet;
             this.m_world = world;
             this.m_body = world.createBody(bd);
+            this.m_body.m_userData = this;
+            this.m_body.setXForm(this.m_position, this.m_angle);
+            this.m_body.setLinearVelocity(this.m_linearVelocity);
+            this.m_body.setAngularVelocity(this.m_angularVelocity);
+            this.m_body.m_linearDamping = this.m_linearDamping;
+            this.m_body.m_angularDamping = this.m_angularDamping;
+            if (this.m_rotatable) {
+                this.m_body.m_flags &= ~org.jbox2d.dynamics.Body.e_fixedRotationFlag;
+            }
+            else {
+                this.m_body.m_flags |= org.jbox2d.dynamics.Body.e_fixedRotationFlag;
+            }
+            if (this.m_allowSleep) {
+                this.m_body.m_flags |= org.jbox2d.dynamics.Body.e_allowSleepFlag;
+            }
+            else {
+                this.m_body.m_flags &= ~org.jbox2d.dynamics.Body.e_allowSleepFlag;
+            }
+            this.m_body.setBullet(this.m_bullet);
+            this.m_body.applyForce(this.m_force, this.m_body.getWorldCenter());
+            this.m_body.applyTorque(this.m_torque);
+            this.m_body.m_type = this.m_static ? org.jbox2d.dynamics.Body.e_staticType : org.jbox2d.dynamics.Body.e_dynamicType;
             var sd = this.getProcessedShapeDef();
             if (sd != null) {
                 this.processBody(this.m_body, sd);
@@ -2264,28 +2286,6 @@ var fisica;
                 }
                 ;
             }
-            this.m_body.m_userData = this;
-            this.m_body.setXForm(this.m_position, this.m_angle);
-            this.m_body.setLinearVelocity(this.m_linearVelocity);
-            this.m_body.setAngularVelocity(this.m_angularVelocity);
-            this.m_body.m_linearDamping = this.m_linearDamping;
-            this.m_body.m_angularDamping = this.m_angularDamping;
-            if (this.m_rotatable) {
-                this.m_body.m_flags &= ~org.jbox2d.dynamics.Body.e_fixedRotationFlag;
-            }
-            else {
-                this.m_body.m_flags |= org.jbox2d.dynamics.Body.e_fixedRotationFlag;
-            }
-            if (this.m_allowSleep) {
-                this.m_body.m_flags |= org.jbox2d.dynamics.Body.e_allowSleepFlag;
-            }
-            else {
-                this.m_body.m_flags &= ~org.jbox2d.dynamics.Body.e_allowSleepFlag;
-            }
-            this.m_body.setBullet(this.m_bullet);
-            this.m_body.applyForce(this.m_force, this.m_body.getWorldCenter());
-            this.m_body.applyTorque(this.m_torque);
-            this.m_body.m_type = this.m_static ? org.jbox2d.dynamics.Body.e_staticType : org.jbox2d.dynamics.Body.e_dynamicType;
             this.updateMass();
         };
         FBody.prototype.setState = function (b) {
@@ -5065,7 +5065,7 @@ var fisica;
         function FRevoluteJoint(body1, body2, x, y) {
             var _this = this;
             if (((body1 != null && body1 instanceof fisica.FBody) || body1 === null) && ((body2 != null && body2 instanceof fisica.FBody) || body2 === null) && ((typeof x === 'number') || x === null) && ((typeof y === 'number') || y === null)) {
-                var __args = Array.prototype.slice.call(arguments);
+                var __args = arguments;
                 _this = _super.call(this) || this;
                 if (_this.m_body1 === undefined)
                     _this.m_body1 = null;
@@ -5097,9 +5097,9 @@ var fisica;
                 })();
             }
             else if (((body1 != null && body1 instanceof fisica.FBody) || body1 === null) && ((body2 != null && body2 instanceof fisica.FBody) || body2 === null) && x === undefined && y === undefined) {
-                var __args = Array.prototype.slice.call(arguments);
+                var __args = arguments;
                 {
-                    var __args_2 = Array.prototype.slice.call(arguments);
+                    var __args_2 = arguments;
                     var x_1 = Math.fround((Math.fround(__args_2[0].getX() + __args_2[1].getX())) / 2);
                     var y_1 = Math.fround((Math.fround(__args_2[0].getY() + __args_2[1].getY())) / 2);
                     _this = _super.call(this) || this;

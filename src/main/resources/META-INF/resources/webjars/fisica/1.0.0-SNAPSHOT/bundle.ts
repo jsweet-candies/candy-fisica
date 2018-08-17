@@ -319,7 +319,7 @@ namespace fisica {
 
         public constructor(id? : any, b1? : any, b2? : any) {
             if(((id != null && id instanceof <any>org.jbox2d.collision.ContactID) || id === null) && ((b1 != null && b1 instanceof <any>fisica.FBody) || b1 === null) && ((b2 != null && b2 instanceof <any>fisica.FBody) || b2 === null)) {
-                let __args = Array.prototype.slice.call(arguments);
+                let __args = arguments;
                 if(this.m_id===undefined) this.m_id = null;
                 if(this.m_b1===undefined) this.m_b1 = null;
                 if(this.m_b2===undefined) this.m_b2 = null;
@@ -332,7 +332,7 @@ namespace fisica {
                     this.m_b2 = b2;
                 })();
             } else if(((id != null && id instanceof <any>fisica.FContactID) || id === null) && b1 === undefined && b2 === undefined) {
-                let __args = Array.prototype.slice.call(arguments);
+                let __args = arguments;
                 let fid : any = __args[0];
                 if(this.m_id===undefined) this.m_id = null;
                 if(this.m_b1===undefined) this.m_b1 = null;
@@ -1405,7 +1405,7 @@ namespace fisica {
 
         public constructor(topLeftX? : any, topLeftY? : any, bottomRightX? : any, bottomRightY? : any) {
             if(((typeof topLeftX === 'number') || topLeftX === null) && ((typeof topLeftY === 'number') || topLeftY === null) && ((typeof bottomRightX === 'number') || bottomRightX === null) && ((typeof bottomRightY === 'number') || bottomRightY === null)) {
-                let __args = Array.prototype.slice.call(arguments);
+                let __args = arguments;
                 super(new org.jbox2d.collision.AABB(fisica.Fisica.screenToWorld$org_jbox2d_common_Vec2(new org.jbox2d.common.Vec2(topLeftX, topLeftY)), fisica.Fisica.screenToWorld$org_jbox2d_common_Vec2(new org.jbox2d.common.Vec2(bottomRightX, bottomRightY))), fisica.Fisica.screenToWorld$org_jbox2d_common_Vec2(new org.jbox2d.common.Vec2(0.0, 10.0)), true);
                 if(this.left===undefined) this.left = null;
                 if(this.right===undefined) this.right = null;
@@ -1474,9 +1474,9 @@ namespace fisica {
                     this.setGravity$float$float(0, 200);
                 })();
             } else if(topLeftX === undefined && topLeftY === undefined && bottomRightX === undefined && bottomRightY === undefined) {
-                let __args = Array.prototype.slice.call(arguments);
+                let __args = arguments;
                 {
-                    let __args = Array.prototype.slice.call(arguments);
+                    let __args = arguments;
                     let topLeftX : any = -fisica.Fisica.parent().width;
                     let topLeftY : any = -fisica.Fisica.parent().height;
                     let bottomRightX : any = 2 * fisica.Fisica.parent().width;
@@ -1592,6 +1592,10 @@ namespace fisica {
             };
         }
 
+        public draw$() {
+            this.draw$def_processing_core_PGraphics(fisica.Fisica.parentGraphics());
+        }
+
         public draw$def_processing_core_PGraphics(graphics : PGraphics) {
             this.processActions();
             for(let i : number = 0; i < /* size */(<number>this.m_fbodies.length); i++) {
@@ -1648,10 +1652,6 @@ namespace fisica {
             } else if(graphics === undefined) {
                 return <any>this.drawDebug$();
             } else throw new Error('invalid overload');
-        }
-
-        public draw$() {
-            this.draw$def_processing_core_PGraphics(fisica.Fisica.parentGraphics());
         }
 
         public drawDebug$() {
@@ -2280,6 +2280,26 @@ namespace fisica {
             bd.isBullet = this.m_bullet;
             this.m_world = world;
             this.m_body = world.createBody(bd);
+            this.m_body.m_userData = this;
+            this.m_body.setXForm(this.m_position, this.m_angle);
+            this.m_body.setLinearVelocity(this.m_linearVelocity);
+            this.m_body.setAngularVelocity(this.m_angularVelocity);
+            this.m_body.m_linearDamping = this.m_linearDamping;
+            this.m_body.m_angularDamping = this.m_angularDamping;
+            if(this.m_rotatable) {
+                this.m_body.m_flags &= ~org.jbox2d.dynamics.Body.e_fixedRotationFlag;
+            } else {
+                this.m_body.m_flags |= org.jbox2d.dynamics.Body.e_fixedRotationFlag;
+            }
+            if(this.m_allowSleep) {
+                this.m_body.m_flags |= org.jbox2d.dynamics.Body.e_allowSleepFlag;
+            } else {
+                this.m_body.m_flags &= ~org.jbox2d.dynamics.Body.e_allowSleepFlag;
+            }
+            this.m_body.setBullet(this.m_bullet);
+            this.m_body.applyForce(this.m_force, this.m_body.getWorldCenter());
+            this.m_body.applyTorque(this.m_torque);
+            this.m_body.m_type = this.m_static?org.jbox2d.dynamics.Body.e_staticType:org.jbox2d.dynamics.Body.e_dynamicType;
             let sd : org.jbox2d.collision.shapes.ShapeDef = this.getProcessedShapeDef();
             if(sd != null) {
                 this.processBody(this.m_body, sd);
@@ -2302,26 +2322,6 @@ namespace fisica {
                     }
                 };
             }
-            this.m_body.m_userData = this;
-            this.m_body.setXForm(this.m_position, this.m_angle);
-            this.m_body.setLinearVelocity(this.m_linearVelocity);
-            this.m_body.setAngularVelocity(this.m_angularVelocity);
-            this.m_body.m_linearDamping = this.m_linearDamping;
-            this.m_body.m_angularDamping = this.m_angularDamping;
-            if(this.m_rotatable) {
-                this.m_body.m_flags &= ~org.jbox2d.dynamics.Body.e_fixedRotationFlag;
-            } else {
-                this.m_body.m_flags |= org.jbox2d.dynamics.Body.e_fixedRotationFlag;
-            }
-            if(this.m_allowSleep) {
-                this.m_body.m_flags |= org.jbox2d.dynamics.Body.e_allowSleepFlag;
-            } else {
-                this.m_body.m_flags &= ~org.jbox2d.dynamics.Body.e_allowSleepFlag;
-            }
-            this.m_body.setBullet(this.m_bullet);
-            this.m_body.applyForce(this.m_force, this.m_body.getWorldCenter());
-            this.m_body.applyTorque(this.m_torque);
-            this.m_body.m_type = this.m_static?org.jbox2d.dynamics.Body.e_staticType:org.jbox2d.dynamics.Body.e_dynamicType;
             this.updateMass();
         }
 
@@ -5309,7 +5309,7 @@ namespace fisica {
 
         public constructor(body1? : any, body2? : any, x? : any, y? : any) {
             if(((body1 != null && body1 instanceof <any>fisica.FBody) || body1 === null) && ((body2 != null && body2 instanceof <any>fisica.FBody) || body2 === null) && ((typeof x === 'number') || x === null) && ((typeof y === 'number') || y === null)) {
-                let __args = Array.prototype.slice.call(arguments);
+                let __args = arguments;
                 super();
                 if(this.m_body1===undefined) this.m_body1 = null;
                 if(this.m_body2===undefined) this.m_body2 = null;
@@ -5334,9 +5334,9 @@ namespace fisica {
                     this.m_referenceAngle = (<any>Math).fround(this.m_body2.getRotation() - this.m_body1.getRotation());
                 })();
             } else if(((body1 != null && body1 instanceof <any>fisica.FBody) || body1 === null) && ((body2 != null && body2 instanceof <any>fisica.FBody) || body2 === null) && x === undefined && y === undefined) {
-                let __args = Array.prototype.slice.call(arguments);
+                let __args = arguments;
                 {
-                    let __args = Array.prototype.slice.call(arguments);
+                    let __args = arguments;
                     let x : any = (<any>Math).fround(((<any>Math).fround(__args[0].getX() + __args[1].getX())) / 2);
                     let y : any = (<any>Math).fround(((<any>Math).fround(__args[0].getY() + __args[1].getY())) / 2);
                     super();
