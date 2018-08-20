@@ -1164,8 +1164,8 @@ var fisica;
      * void setup() {
      * size(200, 200);
      *
-     * Fisica.init(this);
-     * world = new FWorld(-width, -height, 2*width, 2*height); } }
+     * Fisica.init(this); world = new FWorld(-width, -height, 2*width, 2*height); }
+     * }
      *
      * @usage World
      * @param {number} topLeftX
@@ -1491,6 +1491,25 @@ var fisica;
             this.m_mouseJoint.releaseGrabbedBody();
         };
         /**
+         * This is an internal method to handle mouse interaction and should not be
+         * used.
+         *
+         * @internal
+         * @exclude
+         * @param {ProcessingMouseEvent} event
+         */
+        FWorld.prototype.mouseEvent = function (event) {
+            if (event.getAction() === ProcessingMouseEvent.PRESS && event.getButton() === this.m_mouseButton) {
+                this.grabBody(event.getX(), event.getY());
+            }
+            if (event.getAction() === ProcessingMouseEvent.RELEASE && event.getButton() === this.m_mouseButton) {
+                this.releaseBody();
+            }
+            if (event.getAction() === ProcessingMouseEvent.DRAG) {
+                this.dragBody(event.getX(), event.getY());
+            }
+        };
+        /**
          * Returns the mouse joint that is used for interaction with the bodies in the
          * world.
          *
@@ -1526,27 +1545,30 @@ var fisica;
         };
         FWorld.prototype.processActions = function () {
             while ((this.m_actions.length > 0)) {
-                (function (a) { return a.length == 0 ? null : a.shift(); })(this.m_actions).apply(this);
+                {
+                    (function (a) { return a.length == 0 ? null : a.shift(); })(this.m_actions).apply(this);
+                }
             }
             ;
-        };
-        FWorld.prototype.draw$ = function () {
-            this.draw$def_processing_core_PGraphics(fisica.Fisica.parentGraphics());
         };
         FWorld.prototype.draw$def_processing_core_PGraphics = function (graphics) {
             this.processActions();
             for (var i = 0; i < this.m_fbodies.length; i++) {
-                var fb = this.m_fbodies[i];
-                if (fb != null && fb.isDrawable())
-                    fb.draw(graphics);
+                {
+                    var fb = this.m_fbodies[i];
+                    if (fb != null && fb.isDrawable())
+                        fb.draw(graphics);
+                }
+                ;
             }
-            ;
             for (var j = this.getJointList(); j != null; j = j.m_next) {
-                var fj = (j.m_userData);
-                if (fj != null && fj.isDrawable())
-                    fj.draw(graphics);
+                {
+                    var fj = (j.m_userData);
+                    if (fj != null && fj.isDrawable())
+                        fj.draw(graphics);
+                }
+                ;
             }
-            ;
         };
         /**
          * Draws all the bodies in the world. This method is often called in the draw
@@ -1570,17 +1592,21 @@ var fisica;
         FWorld.prototype.drawDebug$def_processing_core_PGraphics = function (graphics) {
             this.processActions();
             for (var i = 0; i < this.m_fbodies.length; i++) {
-                var fb = this.m_fbodies[i];
-                if (fb != null)
-                    fb.drawDebug(graphics);
+                {
+                    var fb = this.m_fbodies[i];
+                    if (fb != null)
+                        fb.drawDebug(graphics);
+                }
+                ;
             }
-            ;
             for (var j = this.getJointList(); j != null; j = j.m_next) {
-                var fj = (j.m_userData);
-                if (fj != null)
-                    fj.drawDebug(graphics);
+                {
+                    var fj = (j.m_userData);
+                    if (fj != null)
+                        fj.drawDebug(graphics);
+                }
+                ;
             }
-            ;
         };
         /**
          * Draws the debug version of all the bodies in the world. This method is often
@@ -1600,6 +1626,9 @@ var fisica;
             }
             else
                 throw new Error('invalid overload');
+        };
+        FWorld.prototype.draw$ = function () {
+            this.draw$def_processing_core_PGraphics(fisica.Fisica.parentGraphics());
         };
         FWorld.prototype.drawDebug$ = function () {
             this.drawDebug$def_processing_core_PGraphics(fisica.Fisica.parentGraphics());
@@ -1659,15 +1688,19 @@ var fisica;
          */
         FWorld.prototype.clear = function () {
             for (var j = this.getJointList(); j != null; j = j.m_next) {
-                var fj = (j.m_userData);
-                this.remove$fisica_FJoint(fj);
+                {
+                    var fj = (j.m_userData);
+                    this.remove$fisica_FJoint(fj);
+                }
+                ;
             }
-            ;
             for (var b = this.getBodyList(); b != null; b = b.m_next) {
-                var fb = (b.m_userData);
-                this.remove$fisica_FBody(fb);
+                {
+                    var fb = (b.m_userData);
+                    this.remove$fisica_FBody(fb);
+                }
+                ;
             }
-            ;
         };
         FWorld.prototype.setEdges$float$float$float$float$int = function (topLeftX, topLeftY, bottomRightX, bottomRightY, color) {
             var height = Math.abs(Math.fround(bottomRightY - topLeftY));
@@ -1887,12 +1920,14 @@ var fisica;
         FWorld.prototype.getBodies$ = function () {
             var result = ([]);
             for (var b = this.getBodyList(); b != null; b = b.m_next) {
-                var fb = (b.m_userData);
-                if (fb != null) {
-                    /* add */ (result.push(fb) > 0);
+                {
+                    var fb = (b.m_userData);
+                    if (fb != null) {
+                        /* add */ (result.push(fb) > 0);
+                    }
                 }
+                ;
             }
-            ;
             return result;
         };
         FWorld.prototype.getBodies$float$float = function (x, y) {
@@ -1912,15 +1947,17 @@ var fisica;
             if (shapes == null)
                 return result;
             for (var j = 0; j < shapes.length; j++) {
-                var shapeBody = shapes[j].getBody();
-                if (shapeBody.isStatic() === false || getStatic) {
-                    var inside = shapes[j].testPoint(shapeBody.getMemberXForm(), p);
-                    if (inside) {
-                        /* add */ (result.push((shapeBody.getUserData())) > 0);
+                {
+                    var shapeBody = shapes[j].getBody();
+                    if (shapeBody.isStatic() === false || getStatic) {
+                        var inside = shapes[j].testPoint(shapeBody.getMemberXForm(), p);
+                        if (inside) {
+                            /* add */ (result.push((shapeBody.getUserData())) > 0);
+                        }
                     }
                 }
+                ;
             }
-            ;
             return result;
         };
         /**
@@ -1963,11 +2000,13 @@ var fisica;
                 a.push(null); return a; })(maxCount);
             var count = this.raycast$org_jbox2d_collision_Segment$org_jbox2d_collision_shapes_Shape_A$int$boolean$java_lang_Object(segment, shapes, maxCount, solidShapes, null);
             for (var i = 0; i < count; ++i) {
-                var shape = shapes[i];
-                var shapeBody = shape.getBody();
-                results[i] = (shapeBody.getUserData());
+                {
+                    var shape = shapes[i];
+                    var shapeBody = shape.getBody();
+                    results[i] = (shapeBody.getUserData());
+                }
+                ;
             }
-            ;
             return count;
         };
         FWorld.prototype.raycast = function (x1, y1, x2, y2, bodies, maxCount, solidShapes) {
@@ -2269,22 +2308,26 @@ var fisica;
             var sds = this.getShapeDefs();
             if (sds.length !== bodies.length) {
                 for (var i = 0; i < sds.length; i++) {
-                    sd = (sds[i]);
-                    if (sd != null) {
-                        this.processBody(this.m_body, sd);
+                    {
+                        sd = (sds[i]);
+                        if (sd != null) {
+                            this.processBody(this.m_body, sd);
+                        }
                     }
+                    ;
                 }
-                ;
             }
             else {
                 for (var i = 0; i < sds.length; i++) {
-                    var b = (bodies[i]);
-                    sd = (sds[i]);
-                    if (sd != null) {
-                        b.processBody(this.m_body, sd);
+                    {
+                        var b = (bodies[i]);
+                        sd = (sds[i]);
+                        if (sd != null) {
+                            b.processBody(this.m_body, sd);
+                        }
                     }
+                    ;
                 }
-                ;
             }
             this.updateMass();
         };
@@ -2470,15 +2513,17 @@ var fisica;
             if (b != null) {
                 var ss = b.getShapeList();
                 while ((ss != null)) {
-                    ss.computeAABB(temp, tempXForm);
-                    if (first) {
-                        result = new org.jbox2d.collision.AABB(temp);
-                        first = false;
+                    {
+                        ss.computeAABB(temp, tempXForm);
+                        if (first) {
+                            result = new org.jbox2d.collision.AABB(temp);
+                            first = false;
+                        }
+                        else {
+                            result = new org.jbox2d.collision.AABB(org.jbox2d.common.Vec2.min(result.lowerBound, temp.lowerBound), org.jbox2d.common.Vec2.max(result.upperBound, temp.upperBound));
+                        }
+                        ss = ss.getNext();
                     }
-                    else {
-                        result = new org.jbox2d.collision.AABB(org.jbox2d.common.Vec2.min(result.lowerBound, temp.lowerBound), org.jbox2d.common.Vec2.max(result.upperBound, temp.upperBound));
-                    }
-                    ss = ss.getNext();
                 }
                 ;
             }
@@ -2497,15 +2542,17 @@ var fisica;
             if (b != null) {
                 var ss = b.getShapeList();
                 while ((ss != null)) {
-                    ss.computeAABB(temp, tempXForm);
-                    if (first) {
-                        result = new org.jbox2d.collision.AABB(temp);
-                        first = false;
+                    {
+                        ss.computeAABB(temp, tempXForm);
+                        if (first) {
+                            result = new org.jbox2d.collision.AABB(temp);
+                            first = false;
+                        }
+                        else {
+                            result = new org.jbox2d.collision.AABB(org.jbox2d.common.Vec2.min(result.lowerBound, temp.lowerBound), org.jbox2d.common.Vec2.max(result.upperBound, temp.upperBound));
+                        }
+                        ss = ss.getNext();
                     }
-                    else {
-                        result = new org.jbox2d.collision.AABB(org.jbox2d.common.Vec2.min(result.lowerBound, temp.lowerBound), org.jbox2d.common.Vec2.max(result.upperBound, temp.upperBound));
-                    }
-                    ss = ss.getNext();
                 }
                 ;
             }
@@ -2970,9 +3017,11 @@ var fisica;
                 return;
             }
             for (var s = this.m_body.getShapeList(); s != null; s = s.m_next) {
-                s.m_density = this.m_static ? 0.0 : this.m_density;
+                {
+                    s.m_density = this.m_static ? 0.0 : this.m_density;
+                }
+                ;
             }
-            ;
             this.m_body.setMassFromShapes();
         };
         /**
@@ -2983,9 +3032,11 @@ var fisica;
         FBody.prototype.setSensor = function (value) {
             if (this.m_body != null) {
                 for (var s = this.m_body.getShapeList(); s != null; s = s.m_next) {
-                    s.m_isSensor = value;
+                    {
+                        s.m_isSensor = value;
+                    }
+                    ;
                 }
-                ;
             }
             this.m_sensor = value;
         };
@@ -3058,9 +3109,11 @@ var fisica;
         FBody.prototype.setRestitution = function (restitution) {
             if (this.m_body != null) {
                 for (var s = this.m_body.getShapeList(); s != null; s = s.m_next) {
-                    s.setRestitution(restitution);
+                    {
+                        s.setRestitution(restitution);
+                    }
+                    ;
                 }
-                ;
             }
             this.m_restitution = restitution;
         };
@@ -3072,9 +3125,11 @@ var fisica;
         FBody.prototype.setFriction = function (friction) {
             if (this.m_body != null) {
                 for (var s = this.m_body.getShapeList(); s != null; s = s.m_next) {
-                    s.setFriction(friction);
+                    {
+                        s.setFriction(friction);
+                    }
+                    ;
                 }
-                ;
             }
             this.m_friction = friction;
         };
@@ -3126,12 +3181,14 @@ var fisica;
                 r.push(m.entries[i].value); return r; })(this.m_world.m_contacts);
             var iter = (function (a) { var i = 0; return { next: function () { return i < a.length ? a[i++] : null; }, hasNext: function () { return i < a.length; } }; })(contacts);
             while ((iter.hasNext())) {
-                var contact = iter.next();
-                if (this === contact.getBody1()) {
-                    /* add */ (result.push(contact.getBody2()) > 0);
-                }
-                else if (this === contact.getBody2()) {
-                    /* add */ (result.push(contact.getBody1()) > 0);
+                {
+                    var contact = iter.next();
+                    if (this === contact.getBody1()) {
+                        /* add */ (result.push(contact.getBody2()) > 0);
+                    }
+                    else if (this === contact.getBody2()) {
+                        /* add */ (result.push(contact.getBody1()) > 0);
+                    }
                 }
             }
             ;
@@ -3152,9 +3209,11 @@ var fisica;
                 r.push(m.entries[i].value); return r; })(this.m_world.m_contacts);
             var iter = (function (a) { var i = 0; return { next: function () { return i < a.length ? a[i++] : null; }, hasNext: function () { return i < a.length; } }; })(contacts);
             while ((iter.hasNext())) {
-                var contact = iter.next();
-                if (this === contact.getBody1() || this === contact.getBody2()) {
-                    /* add */ (result.push(contact) > 0);
+                {
+                    var contact = iter.next();
+                    if (this === contact.getBody1() || this === contact.getBody2()) {
+                        /* add */ (result.push(contact) > 0);
+                    }
                 }
             }
             ;
@@ -3169,12 +3228,14 @@ var fisica;
             var result = ([]);
             if (this.m_body != null) {
                 for (var jn = this.m_body.getJointList(); jn != null; jn = jn.next) {
-                    var j = (jn.joint.m_userData);
-                    if (j != null) {
-                        /* add */ (result.push(j) > 0);
+                    {
+                        var j = (jn.joint.m_userData);
+                        if (j != null) {
+                            /* add */ (result.push(j) > 0);
+                        }
                     }
+                    ;
                 }
-                ;
             }
             return result;
         };
@@ -3187,12 +3248,14 @@ var fisica;
         FBody.prototype.isConnected = function (other) {
             if (this.m_body != null) {
                 for (var jn = this.m_body.getJointList(); jn != null; jn = jn.next) {
-                    var b = (jn.other.m_userData);
-                    if (jn.other.m_userData === other) {
-                        return (jn.joint.m_collideConnected === false);
+                    {
+                        var b = (jn.other.m_userData);
+                        if (jn.other.m_userData === other) {
+                            return (jn.joint.m_collideConnected === false);
+                        }
                     }
+                    ;
                 }
-                ;
             }
             return false;
         };
@@ -3474,40 +3537,46 @@ var fisica;
             this.m_joint.setDamping(this.m_damping);
             this.m_joint.updateStyle(this);
             for (var i = 0; i < this.m_vertices.length; i++) {
-                var p = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_vertices[i]);
-                var fb = new fisica.FCircle(this.getVertexSize());
-                fb.setPosition$float$float(p.x, p.y);
-                fb.setDensity(this.m_density);
-                fb.setRestitution(this.m_restitution);
-                fb.setFriction(this.m_friction);
-                fb.setGroupIndex(this.m_groupIndex);
-                fb.setFilterBits(this.m_filterBits);
-                fb.setCategoryBits(this.m_categoryBits);
-                fb.setState(this);
-                /* add */ (this.m_vertexBodies.push(fb) > 0);
+                {
+                    var p = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_vertices[i]);
+                    var fb = new fisica.FCircle(this.getVertexSize());
+                    fb.setPosition$float$float(p.x, p.y);
+                    fb.setDensity(this.m_density);
+                    fb.setRestitution(this.m_restitution);
+                    fb.setFriction(this.m_friction);
+                    fb.setGroupIndex(this.m_groupIndex);
+                    fb.setFilterBits(this.m_filterBits);
+                    fb.setCategoryBits(this.m_categoryBits);
+                    fb.setState(this);
+                    /* add */ (this.m_vertexBodies.push(fb) > 0);
+                }
+                ;
             }
-            ;
             for (var i = 0; i < this.m_vertexBodies.length; i++) {
-                var fb = this.m_vertexBodies[i];
-                fb.setDrawable(false);
-                fb.setParent(this);
-                fb.setRotatable(false);
-                world.add$fisica_FBody(fb);
-                var f = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_force);
-                fb.addForce$float$float(f.x, f.y);
-                fb.addTorque(this.m_torque);
-                this.m_joint.addBody(fb);
+                {
+                    var fb = this.m_vertexBodies[i];
+                    fb.setDrawable(false);
+                    fb.setParent(this);
+                    fb.setRotatable(false);
+                    world.add$fisica_FBody(fb);
+                    var f = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_force);
+                    fb.addForce$float$float(f.x, f.y);
+                    fb.addTorque(this.m_torque);
+                    this.m_joint.addBody(fb);
+                }
+                ;
             }
-            ;
             this.m_joint.setCollideConnected(false);
             world.add$fisica_FJoint(this.m_joint);
         };
         FBlob.prototype.removeFromWorld = function () {
             this.m_joint.removeFromWorld();
             for (var i = 0; i < this.m_vertexBodies.length; i++) {
-                (this.m_vertexBodies[i]).removeFromWorld();
+                {
+                    (this.m_vertexBodies[i]).removeFromWorld();
+                }
+                ;
             }
-            ;
         };
         /**
          * Adds a vertex body to the initial shape of the blob. This method must be
@@ -3554,12 +3623,14 @@ var fisica;
         FBlob.prototype.setAsCircle$float$float$float$int = function (x, y, size, vertexCount) {
             /* clear */ (this.m_vertices.length = 0);
             for (var i = 0; i < vertexCount; i++) {
-                var angle = PApplet.map(i, 0, vertexCount, 0, PConstants.TWO_PI);
-                var vx = Math.fround(x + Math.fround(Math.fround(size / 2) * PApplet.sin(angle)));
-                var vy = Math.fround(y + Math.fround(Math.fround(size / 2) * PApplet.cos(angle)));
-                this.vertex(vx, vy);
+                {
+                    var angle = PApplet.map(i, 0, vertexCount, 0, PConstants.TWO_PI);
+                    var vx = Math.fround(x + Math.fround(Math.fround(size / 2) * PApplet.sin(angle)));
+                    var vy = Math.fround(y + Math.fround(Math.fround(size / 2) * PApplet.cos(angle)));
+                    this.vertex(vx, vy);
+                }
+                ;
             }
-            ;
         };
         /**
          * Sets the initial shape of the blob to a circle. This method removes all the
@@ -3666,44 +3737,56 @@ var fisica;
         };
         FBlob.prototype.addForce$float$float = function (fx, fy) {
             for (var i = 0; i < this.m_vertexBodies.length; i++) {
-                this.m_vertexBodies[i].addForce$float$float(fx, fy);
+                {
+                    this.m_vertexBodies[i].addForce$float$float(fx, fy);
+                }
+                ;
             }
-            ;
             this.m_force.add(fisica.Fisica.screenToWorld$float$float(fx, fy));
         };
         FBlob.prototype.addTorque = function (t) {
             for (var i = 0; i < this.m_vertexBodies.length; i++) {
-                this.m_vertexBodies[i].addTorque(t);
+                {
+                    this.m_vertexBodies[i].addTorque(t);
+                }
+                ;
             }
-            ;
             this.m_torque += t;
         };
         FBlob.prototype.setDensity = function (d) {
             for (var i = 0; i < this.m_vertexBodies.length; i++) {
-                this.m_vertexBodies[i].setDensity(d);
+                {
+                    this.m_vertexBodies[i].setDensity(d);
+                }
+                ;
             }
-            ;
             this.m_density = d;
         };
         FBlob.prototype.setFriction = function (d) {
             for (var i = 0; i < this.m_vertexBodies.length; i++) {
-                this.m_vertexBodies[i].setFriction(d);
+                {
+                    this.m_vertexBodies[i].setFriction(d);
+                }
+                ;
             }
-            ;
             this.m_friction = d;
         };
         FBlob.prototype.setRestitution = function (d) {
             for (var i = 0; i < this.m_vertexBodies.length; i++) {
-                this.m_vertexBodies[i].setRestitution(d);
+                {
+                    this.m_vertexBodies[i].setRestitution(d);
+                }
+                ;
             }
-            ;
             this.m_restitution = d;
         };
         FBlob.prototype.setBullet = function (d) {
             for (var i = 0; i < this.m_vertexBodies.length; i++) {
-                this.m_vertexBodies[i].setBullet(d);
+                {
+                    this.m_vertexBodies[i].setBullet(d);
+                }
+                ;
             }
-            ;
             this.m_bullet = d;
         };
         FBlob.prototype.setNoStroke = function () {
@@ -3795,10 +3878,12 @@ var fisica;
             xf.R.set(-this.m_angle);
             xf.position = org.jbox2d.common.Mat22.mul(xf.R, this.m_position.negate());
             for (var i = 0; i < pd.vertices.length; i++) {
-                var ver = pd.vertices[i];
-                org.jbox2d.common.XForm.mulTransToOut(xf, ver, ver);
+                {
+                    var ver = pd.vertices[i];
+                    org.jbox2d.common.XForm.mulTransToOut(xf, ver, ver);
+                }
+                ;
             }
-            ;
             return pd;
         };
         /**
@@ -3952,11 +4037,13 @@ var fisica;
         FCompound.prototype.getShapeDefs = function () {
             var result = ([]);
             for (var i = 0; i < this.m_shapes.length; i++) {
-                var sd = (this.m_shapes[i].getTransformedShapeDef());
-                sd = this.m_shapes[i].processShapeDef(sd);
-                /* add */ (result.push(sd) > 0);
+                {
+                    var sd = (this.m_shapes[i].getTransformedShapeDef());
+                    sd = this.m_shapes[i].processShapeDef(sd);
+                    /* add */ (result.push(sd) > 0);
+                }
+                ;
             }
-            ;
             return result;
         };
         FCompound.prototype.getBodies = function () {
@@ -3972,18 +4059,22 @@ var fisica;
             }
             else {
                 for (var i = 0; i < this.m_shapes.length; i++) {
-                    this.m_shapes[i].draw(applet);
+                    {
+                        this.m_shapes[i].draw(applet);
+                    }
+                    ;
                 }
-                ;
             }
             this.postDraw(applet);
         };
         FCompound.prototype.drawDebug = function (applet) {
             this.preDrawDebug(applet);
             for (var i = 0; i < this.m_shapes.length; i++) {
-                this.m_shapes[i].drawDebug(applet);
+                {
+                    this.m_shapes[i].drawDebug(applet);
+                }
+                ;
             }
-            ;
             this.postDrawDebug(applet);
         };
         return FCompound;
@@ -4132,10 +4223,12 @@ var fisica;
             xf.R.set(-this.m_angle);
             xf.position = org.jbox2d.common.Mat22.mul(xf.R, this.m_position.negate());
             for (var i = 0; i < pd.vertices.length; i++) {
-                var ver = pd.vertices[i];
-                org.jbox2d.common.XForm.mulTransToOut(xf, ver, ver);
+                {
+                    var ver = pd.vertices[i];
+                    org.jbox2d.common.XForm.mulTransToOut(xf, ver, ver);
+                }
+                ;
             }
-            ;
             return pd;
         };
         FPoly.prototype.draw = function (applet) {
@@ -4146,10 +4239,12 @@ var fisica;
             else {
                 applet.beginShape();
                 for (var i = 0; i < this.m_vertices.length; i++) {
-                    var v = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_vertices[i]);
-                    applet.vertex(v.x, v.y);
+                    {
+                        var v = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_vertices[i]);
+                        applet.vertex(v.x, v.y);
+                    }
+                    ;
                 }
-                ;
                 if (this.m_closed) {
                     applet.endShape(PConstants.CLOSE);
                 }
@@ -4168,28 +4263,34 @@ var fisica;
                 applet.fill(120, 30);
                 var ss = b.getShapeList();
                 while ((ss != null)) {
-                    var ps = ss;
-                    var vecs = ps.getVertices();
-                    applet.beginShape();
-                    for (var j = 0; j < ps.getVertexCount(); j++) {
-                        var v = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(vecs[j]);
-                        applet.vertex(v.x, v.y);
+                    {
+                        var ps = ss;
+                        var vecs = ps.getVertices();
+                        applet.beginShape();
+                        for (var j = 0; j < ps.getVertexCount(); j++) {
+                            {
+                                var v = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(vecs[j]);
+                                applet.vertex(v.x, v.y);
+                            }
+                            ;
+                        }
+                        applet.endShape(PConstants.CLOSE);
+                        var c = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(ps.getCentroid());
+                        applet.ellipse(c.x, c.y, 2, 2);
+                        ss = ss.getNext();
                     }
-                    ;
-                    applet.endShape(PConstants.CLOSE);
-                    var c = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(ps.getCentroid());
-                    applet.ellipse(c.x, c.y, 2, 2);
-                    ss = ss.getNext();
                 }
                 ;
                 applet.popStyle();
             }
             applet.beginShape();
             for (var i = 0; i < this.m_vertices.length; i++) {
-                var v = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_vertices[i]);
-                applet.vertex(v.x, v.y);
+                {
+                    var v = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(this.m_vertices[i]);
+                    applet.vertex(v.x, v.y);
+                }
+                ;
             }
-            ;
             if (this.m_closed) {
                 applet.endShape(PConstants.CLOSE);
             }
@@ -4225,12 +4326,14 @@ var fisica;
             md.frequencyHz = this.m_frequency;
             md.dampingRatio = this.m_damping;
             for (var i = 0; i < this.m_bodies.length; i++) {
-                var b = this.m_bodies[i].m_body;
-                if (b != null) {
-                    md.addBody(b);
+                {
+                    var b = this.m_bodies[i].m_body;
+                    if (b != null) {
+                        md.addBody(b);
+                    }
                 }
+                ;
             }
-            ;
             return md;
         };
         /**
@@ -4275,16 +4378,18 @@ var fisica;
             var a = 0.0;
             var i;
             for (i = 0; i < this.m_bodies.length - 1; ++i) {
-                x0 = this.m_bodies[i].getX();
-                y0 = this.m_bodies[i].getY();
-                x1 = this.m_bodies[i + 1].getX();
-                y1 = this.m_bodies[i + 1].getY();
-                a = Math.fround(Math.fround(x0 * y1) - Math.fround(x1 * y0));
-                signedArea += a;
-                centroid.x += Math.fround((Math.fround(x0 + x1)) * a);
-                centroid.y += Math.fround((Math.fround(y0 + y1)) * a);
+                {
+                    x0 = this.m_bodies[i].getX();
+                    y0 = this.m_bodies[i].getY();
+                    x1 = this.m_bodies[i + 1].getX();
+                    y1 = this.m_bodies[i + 1].getY();
+                    a = Math.fround(Math.fround(x0 * y1) - Math.fround(x1 * y0));
+                    signedArea += a;
+                    centroid.x += Math.fround((Math.fround(x0 + x1)) * a);
+                    centroid.y += Math.fround((Math.fround(y0 + y1)) * a);
+                }
+                ;
             }
-            ;
             x0 = this.m_bodies[i].getX();
             y0 = this.m_bodies[i].getY();
             x1 = this.m_bodies[0].getX();
@@ -4311,9 +4416,11 @@ var fisica;
                 if (this.m_bodies.length > 0) {
                     applet.beginShape();
                     for (var i = 0; i < this.m_bodies.length; i++) {
-                        applet.vertex(this.m_bodies[i].getX(), this.m_bodies[i].getY());
+                        {
+                            applet.vertex(this.m_bodies[i].getX(), this.m_bodies[i].getY());
+                        }
+                        ;
                     }
-                    ;
                     applet.endShape(PConstants.CLOSE);
                 }
             }
@@ -4324,14 +4431,18 @@ var fisica;
             if (this.m_bodies.length > 0) {
                 applet.beginShape();
                 for (var i = 0; i < this.m_bodies.length; i++) {
-                    applet.vertex(this.m_bodies[i].getX(), this.m_bodies[i].getY());
+                    {
+                        applet.vertex(this.m_bodies[i].getX(), this.m_bodies[i].getY());
+                    }
+                    ;
                 }
-                ;
                 applet.endShape(PConstants.CLOSE);
                 for (var i = 0; i < this.m_bodies.length; i++) {
-                    applet.ellipse(this.m_bodies[i].getX(), this.m_bodies[i].getY(), 5, 5);
+                    {
+                        applet.ellipse(this.m_bodies[i].getX(), this.m_bodies[i].getY(), 5, 5);
+                    }
+                    ;
                 }
-                ;
             }
             this.postDrawDebug(applet);
         };
@@ -4547,11 +4658,13 @@ var fisica;
                 var x = void 0;
                 var y = void 0;
                 for (var i = 0; i < numSpins; i++) {
-                    x = PApplet.map(i + 1, 0, numSpins + 1, 10, Math.fround(dist - 10));
-                    y = ((i % 2) * 2 - 1) * 4;
-                    applet.vertex(x, y);
+                    {
+                        x = PApplet.map(i + 1, 0, numSpins + 1, 10, Math.fround(dist - 10));
+                        y = ((i % 2) * 2 - 1) * 4;
+                        applet.vertex(x, y);
+                    }
+                    ;
                 }
-                ;
                 x = PApplet.map(numSpins + 1, 0, numSpins + 1, 10, Math.fround(dist - 10));
                 applet.vertex(x, 0);
                 applet.vertex(dist, 0);

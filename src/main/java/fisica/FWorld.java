@@ -36,6 +36,7 @@ import org.jbox2d.dynamics.contacts.*;
 import org.jbox2d.dynamics.joints.*;
 
 import def.processing.core.*;
+import def.processing.event.MouseEvent;
 
 /**
  * Represents the world where all the bodies live in. When we create a world it
@@ -318,7 +319,7 @@ public class FWorld extends World {
 	public void setContactListener(final FContactListener listener) {
 		m_clientContactListener = listener;
 	}
-	
+
 	public void setContactListener(final ContactListener listener) {
 		super.setContactListener(listener);
 	}
@@ -373,30 +374,27 @@ public class FWorld extends World {
 	 * @internal
 	 * @exclude
 	 */
-	// public void mouseEvent(MouseEvent event){
-	// // mousePressed
-	// if (event.getAction() == event.PRESS
-	// && event.getButton() == m_mouseButton) {
-	//
-	// grabBody(event.getX(), event.getY());
-	// // TODO: send a bodyGrabbed(FBody body) event
-	// }
-	//
-	// // mouseReleased
-	// if (event.getAction() == event.RELEASE
-	// && event.getButton() == m_mouseButton) {
-	//
-	// releaseBody();
-	// // TODO: send a bodyReleased(FBody body) event
-	// }
-	//
-	// // mouseDragged
-	// if (event.getAction() == event.DRAG) {
-	//
-	// dragBody(event.getX(), event.getY());
-	// // TODO: send a bodyDragged(FBody body) event
-	// }
-	// }
+	public void mouseEvent(MouseEvent event) {
+		// mousePressed
+		if (event.getAction() == MouseEvent.PRESS && event.getButton() == m_mouseButton) {
+			grabBody(event.getX(), event.getY());
+			// TODO: send a bodyGrabbed(FBody body) event
+		}
+
+		// mouseReleased
+		if (event.getAction() == MouseEvent.RELEASE && event.getButton() == m_mouseButton) {
+
+			releaseBody();
+			// TODO: send a bodyReleased(FBody body) event
+		}
+
+		// mouseDragged
+		if (event.getAction() == MouseEvent.DRAG) {
+
+			dragBody(event.getX(), event.getY());
+			// TODO: send a bodyDragged(FBody body) event
+		}
+	}
 
 	/**
 	 * Constructs the world where all the bodies live in. We usually want to build
@@ -411,8 +409,8 @@ public class FWorld extends World {
 	 void setup() {
 	   size(200, 200);
 	
-	   Fisica.init(this);
-	   world = new FWorld(-width, -height, 2*width, 2*height); } }
+	   Fisica.init(this); world = new FWorld(-width, -height, 2*width, 2*height); }
+	 * }
 	 *
 	 * @usage World
 	 * @param topLeftX
@@ -499,12 +497,8 @@ public class FWorld extends World {
 
 		m_grabbable = value;
 		if (m_grabbable) {
-			// Fisica.parent().registerMouseEvent(this);
 			Fisica.parent().registerMethod("mouseEvent", this);
 		} else {
-
-			// Fisica.parent().unregisterMouseEvent(this);
-
 			Fisica.parent().unregisterMethod("mouseEvent", this);
 		}
 	}
@@ -1021,11 +1015,11 @@ public class FWorld extends World {
 
 		return count;
 	}
-	
+
 	public int raycast(Segment segment, Shape[] shapes, int maxCount, boolean solidShapes, Object userData) {
 		return super.raycast(segment, shapes, maxCount, solidShapes, userData);
 	}
-	
+
 	public Shape raycastOne(Segment segment, RaycastResult result, boolean solidShapes, Object userData) {
 		return super.raycastOne(segment, result, solidShapes, userData);
 	}

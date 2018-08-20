@@ -1206,8 +1206,8 @@ namespace fisica {
      * void setup() {
      * size(200, 200);
      * 
-     * Fisica.init(this);
-     * world = new FWorld(-width, -height, 2*width, 2*height); } }
+     * Fisica.init(this); world = new FWorld(-width, -height, 2*width, 2*height); }
+     * }
      * 
      * @usage World
      * @param {number} topLeftX
@@ -1403,6 +1403,26 @@ namespace fisica {
             this.m_mouseJoint.releaseGrabbedBody();
         }
 
+        /**
+         * This is an internal method to handle mouse interaction and should not be
+         * used.
+         * 
+         * @internal
+         * @exclude
+         * @param {ProcessingMouseEvent} event
+         */
+        public mouseEvent(event : ProcessingMouseEvent) {
+            if(event.getAction() === ProcessingMouseEvent.PRESS && event.getButton() === this.m_mouseButton) {
+                this.grabBody(event.getX(), event.getY());
+            }
+            if(event.getAction() === ProcessingMouseEvent.RELEASE && event.getButton() === this.m_mouseButton) {
+                this.releaseBody();
+            }
+            if(event.getAction() === ProcessingMouseEvent.DRAG) {
+                this.dragBody(event.getX(), event.getY());
+            }
+        }
+
         public constructor(topLeftX? : any, topLeftY? : any, bottomRightX? : any, bottomRightY? : any) {
             if(((typeof topLeftX === 'number') || topLeftX === null) && ((typeof topLeftY === 'number') || topLeftY === null) && ((typeof bottomRightX === 'number') || bottomRightX === null) && ((typeof bottomRightY === 'number') || bottomRightY === null)) {
                 let __args = arguments;
@@ -1587,25 +1607,21 @@ namespace fisica {
         }
 
         public processActions() {
-            while((/* size */(<number>this.m_actions.length) > 0)) {
+            while((/* size */(<number>this.m_actions.length) > 0)) {{
                 (<fisica.FWorldAction>/* poll */(a => a.length==0?null:a.shift())(this.m_actions)).apply(this);
-            };
-        }
-
-        public draw$() {
-            this.draw$def_processing_core_PGraphics(fisica.Fisica.parentGraphics());
+            }};
         }
 
         public draw$def_processing_core_PGraphics(graphics : PGraphics) {
             this.processActions();
-            for(let i : number = 0; i < /* size */(<number>this.m_fbodies.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_fbodies.length); i++) {{
                 let fb : fisica.FBody = <fisica.FBody>/* get */this.m_fbodies[i];
                 if(fb != null && fb.isDrawable()) fb.draw(graphics);
-            };
-            for(let j : org.jbox2d.dynamics.joints.Joint = this.getJointList(); j != null; j = j.m_next) {
+            };}
+            for(let j : org.jbox2d.dynamics.joints.Joint = this.getJointList(); j != null; j = j.m_next) {{
                 let fj : fisica.FJoint = <fisica.FJoint>(j.m_userData);
                 if(fj != null && fj.isDrawable()) fj.draw(graphics);
-            };
+            };}
         }
 
         /**
@@ -1627,14 +1643,14 @@ namespace fisica {
 
         public drawDebug$def_processing_core_PGraphics(graphics : PGraphics) {
             this.processActions();
-            for(let i : number = 0; i < /* size */(<number>this.m_fbodies.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_fbodies.length); i++) {{
                 let fb : fisica.FBody = <fisica.FBody>/* get */this.m_fbodies[i];
                 if(fb != null) fb.drawDebug(graphics);
-            };
-            for(let j : org.jbox2d.dynamics.joints.Joint = this.getJointList(); j != null; j = j.m_next) {
+            };}
+            for(let j : org.jbox2d.dynamics.joints.Joint = this.getJointList(); j != null; j = j.m_next) {{
                 let fj : fisica.FJoint = <fisica.FJoint>(j.m_userData);
                 if(fj != null) fj.drawDebug(graphics);
-            };
+            };}
         }
 
         /**
@@ -1652,6 +1668,10 @@ namespace fisica {
             } else if(graphics === undefined) {
                 return <any>this.drawDebug$();
             } else throw new Error('invalid overload');
+        }
+
+        public draw$() {
+            this.draw$def_processing_core_PGraphics(fisica.Fisica.parentGraphics());
         }
 
         public drawDebug$() {
@@ -1712,14 +1732,14 @@ namespace fisica {
          * Clear all bodies and joints from the world. NOT IMPLEMENTED YET.
          */
         public clear() {
-            for(let j : org.jbox2d.dynamics.joints.Joint = this.getJointList(); j != null; j = j.m_next) {
+            for(let j : org.jbox2d.dynamics.joints.Joint = this.getJointList(); j != null; j = j.m_next) {{
                 let fj : fisica.FJoint = <fisica.FJoint>(j.m_userData);
                 this.remove$fisica_FJoint(fj);
-            };
-            for(let b : org.jbox2d.dynamics.Body = this.getBodyList(); b != null; b = b.m_next) {
+            };}
+            for(let b : org.jbox2d.dynamics.Body = this.getBodyList(); b != null; b = b.m_next) {{
                 let fb : fisica.FBody = <fisica.FBody>(b.m_userData);
                 this.remove$fisica_FBody(fb);
-            };
+            };}
         }
 
         public setEdges$float$float$float$float$int(topLeftX : number, topLeftY : number, bottomRightX : number, bottomRightY : number, color : number) {
@@ -1940,12 +1960,12 @@ namespace fisica {
 
         public getBodies$() : Array<any> {
             let result : Array<any> = <any>([]);
-            for(let b : org.jbox2d.dynamics.Body = this.getBodyList(); b != null; b = b.m_next) {
+            for(let b : org.jbox2d.dynamics.Body = this.getBodyList(); b != null; b = b.m_next) {{
                 let fb : fisica.FBody = <fisica.FBody>(b.m_userData);
                 if(fb != null) {
                     /* add */(result.push(fb)>0);
                 }
-            };
+            };}
             return result;
         }
 
@@ -1966,7 +1986,7 @@ namespace fisica {
             let shapes : org.jbox2d.collision.shapes.Shape[] = this.query(this.m_aabb, count);
             let result : Array<any> = <any>([]);
             if(shapes == null) return result;
-            for(let j : number = 0; j < shapes.length; j++) {
+            for(let j : number = 0; j < shapes.length; j++) {{
                 let shapeBody : org.jbox2d.dynamics.Body = shapes[j].getBody();
                 if(shapeBody.isStatic() === false || getStatic) {
                     let inside : boolean = shapes[j].testPoint(shapeBody.getMemberXForm(), p);
@@ -1974,7 +1994,7 @@ namespace fisica {
                         /* add */(result.push(<fisica.FBody>(shapeBody.getUserData()))>0);
                     }
                 }
-            };
+            };}
             return result;
         }
 
@@ -2011,11 +2031,11 @@ namespace fisica {
             let results : any[] = (s => { let a=[]; while(s-->0) a.push(null); return a; })(maxCount);
             let shapes : org.jbox2d.collision.shapes.Shape[] = (s => { let a=[]; while(s-->0) a.push(null); return a; })(maxCount);
             let count : number = this.raycast$org_jbox2d_collision_Segment$org_jbox2d_collision_shapes_Shape_A$int$boolean$java_lang_Object(segment, shapes, maxCount, solidShapes, null);
-            for(let i : number = 0; i < count; ++i) {
+            for(let i : number = 0; i < count; ++i) {{
                 let shape : org.jbox2d.collision.shapes.Shape = <org.jbox2d.collision.shapes.Shape>shapes[i];
                 let shapeBody : org.jbox2d.dynamics.Body = shape.getBody();
                 results[i] = <fisica.FBody>(shapeBody.getUserData());
-            };
+            };}
             return count;
         }
 
@@ -2307,20 +2327,20 @@ namespace fisica {
             let bodies : Array<any> = this.getBodies();
             let sds : Array<any> = this.getShapeDefs();
             if(/* size */(<number>sds.length) !== /* size */(<number>bodies.length)) {
-                for(let i : number = 0; i < /* size */(<number>sds.length); i++) {
+                for(let i : number = 0; i < /* size */(<number>sds.length); i++) {{
                     sd = <org.jbox2d.collision.shapes.ShapeDef>(/* get */sds[i]);
                     if(sd != null) {
                         this.processBody(this.m_body, sd);
                     }
-                };
+                };}
             } else {
-                for(let i : number = 0; i < /* size */(<number>sds.length); i++) {
+                for(let i : number = 0; i < /* size */(<number>sds.length); i++) {{
                     let b : FBody = <FBody>(/* get */bodies[i]);
                     sd = <org.jbox2d.collision.shapes.ShapeDef>(/* get */sds[i]);
                     if(sd != null) {
                         b.processBody(this.m_body, sd);
                     }
-                };
+                };}
             }
             this.updateMass();
         }
@@ -2515,7 +2535,7 @@ namespace fisica {
             let tempXForm : org.jbox2d.common.XForm = b.getXForm();
             if(b != null) {
                 let ss : org.jbox2d.collision.shapes.Shape = b.getShapeList();
-                while((ss != null)) {
+                while((ss != null)) {{
                     ss.computeAABB(temp, tempXForm);
                     if(first) {
                         result = new org.jbox2d.collision.AABB(temp);
@@ -2524,7 +2544,7 @@ namespace fisica {
                         result = new org.jbox2d.collision.AABB(org.jbox2d.common.Vec2.min(result.lowerBound, temp.lowerBound), org.jbox2d.common.Vec2.max(result.upperBound, temp.upperBound));
                     }
                     ss = ss.getNext();
-                };
+                }};
             }
             return result;
         }
@@ -2541,7 +2561,7 @@ namespace fisica {
             tempXForm.setIdentity();
             if(b != null) {
                 let ss : org.jbox2d.collision.shapes.Shape = b.getShapeList();
-                while((ss != null)) {
+                while((ss != null)) {{
                     ss.computeAABB(temp, tempXForm);
                     if(first) {
                         result = new org.jbox2d.collision.AABB(temp);
@@ -2550,7 +2570,7 @@ namespace fisica {
                         result = new org.jbox2d.collision.AABB(org.jbox2d.common.Vec2.min(result.lowerBound, temp.lowerBound), org.jbox2d.common.Vec2.max(result.upperBound, temp.upperBound));
                     }
                     ss = ss.getNext();
-                };
+                }};
             }
             return result;
         }
@@ -3049,9 +3069,9 @@ namespace fisica {
             if(this.m_body == null) {
                 return;
             }
-            for(let s : org.jbox2d.collision.shapes.Shape = this.m_body.getShapeList(); s != null; s = s.m_next) {
+            for(let s : org.jbox2d.collision.shapes.Shape = this.m_body.getShapeList(); s != null; s = s.m_next) {{
                 s.m_density = this.m_static?0.0:this.m_density;
-            };
+            };}
             this.m_body.setMassFromShapes();
         }
 
@@ -3062,9 +3082,9 @@ namespace fisica {
          */
         public setSensor(value : boolean) {
             if(this.m_body != null) {
-                for(let s : org.jbox2d.collision.shapes.Shape = this.m_body.getShapeList(); s != null; s = s.m_next) {
+                for(let s : org.jbox2d.collision.shapes.Shape = this.m_body.getShapeList(); s != null; s = s.m_next) {{
                     s.m_isSensor = value;
-                };
+                };}
             }
             this.m_sensor = value;
         }
@@ -3143,9 +3163,9 @@ namespace fisica {
          */
         public setRestitution(restitution : number) {
             if(this.m_body != null) {
-                for(let s : org.jbox2d.collision.shapes.Shape = this.m_body.getShapeList(); s != null; s = s.m_next) {
+                for(let s : org.jbox2d.collision.shapes.Shape = this.m_body.getShapeList(); s != null; s = s.m_next) {{
                     s.setRestitution(restitution);
-                };
+                };}
             }
             this.m_restitution = restitution;
         }
@@ -3157,9 +3177,9 @@ namespace fisica {
          */
         public setFriction(friction : number) {
             if(this.m_body != null) {
-                for(let s : org.jbox2d.collision.shapes.Shape = this.m_body.getShapeList(); s != null; s = s.m_next) {
+                for(let s : org.jbox2d.collision.shapes.Shape = this.m_body.getShapeList(); s != null; s = s.m_next) {{
                     s.setFriction(friction);
-                };
+                };}
             }
             this.m_friction = friction;
         }
@@ -3209,14 +3229,14 @@ namespace fisica {
             }
             let contacts : Array<any> = /* values */((m) => { let r=[]; if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) r.push(m.entries[i].value); return r; })(<any>this.m_world.m_contacts);
             let iter : any = /* iterator */((a) => { var i = 0; return { next: function() { return i<a.length?a[i++]:null; }, hasNext: function() { return i<a.length; }}})(contacts);
-            while((iter.hasNext())) {
+            while((iter.hasNext())) {{
                 let contact : fisica.FContact = <fisica.FContact>iter.next();
                 if(this === contact.getBody1()) {
                     /* add */(result.push(contact.getBody2())>0);
                 } else if(this === contact.getBody2()) {
                     /* add */(result.push(contact.getBody1())>0);
                 }
-            };
+            }};
             return result;
         }
 
@@ -3232,12 +3252,12 @@ namespace fisica {
             }
             let contacts : Array<any> = /* values */((m) => { let r=[]; if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) r.push(m.entries[i].value); return r; })(<any>this.m_world.m_contacts);
             let iter : any = /* iterator */((a) => { var i = 0; return { next: function() { return i<a.length?a[i++]:null; }, hasNext: function() { return i<a.length; }}})(contacts);
-            while((iter.hasNext())) {
+            while((iter.hasNext())) {{
                 let contact : fisica.FContact = <fisica.FContact>iter.next();
                 if(this === contact.getBody1() || this === contact.getBody2()) {
                     /* add */(result.push(contact)>0);
                 }
-            };
+            }};
             return result;
         }
 
@@ -3249,12 +3269,12 @@ namespace fisica {
         public getJoints() : Array<any> {
             let result : Array<any> = <any>([]);
             if(this.m_body != null) {
-                for(let jn : org.jbox2d.dynamics.joints.JointEdge = this.m_body.getJointList(); jn != null; jn = jn.next) {
+                for(let jn : org.jbox2d.dynamics.joints.JointEdge = this.m_body.getJointList(); jn != null; jn = jn.next) {{
                     let j : fisica.FJoint = <fisica.FJoint>(jn.joint.m_userData);
                     if(j != null) {
                         /* add */(result.push(j)>0);
                     }
-                };
+                };}
             }
             return result;
         }
@@ -3267,12 +3287,12 @@ namespace fisica {
          */
         public isConnected(other : FBody) : boolean {
             if(this.m_body != null) {
-                for(let jn : org.jbox2d.dynamics.joints.JointEdge = this.m_body.getJointList(); jn != null; jn = jn.next) {
+                for(let jn : org.jbox2d.dynamics.joints.JointEdge = this.m_body.getJointList(); jn != null; jn = jn.next) {{
                     let b : FBody = <FBody>(jn.other.m_userData);
                     if(jn.other.m_userData === other) {
                         return (jn.joint.m_collideConnected === false);
                     }
-                };
+                };}
             }
             return false;
         }
@@ -3582,7 +3602,7 @@ namespace fisica {
             this.m_joint.setFrequency(this.m_frequency);
             this.m_joint.setDamping(this.m_damping);
             this.m_joint.updateStyle(this);
-            for(let i : number = 0; i < /* size */(<number>this.m_vertices.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_vertices.length); i++) {{
                 let p : org.jbox2d.common.Vec2 = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(<org.jbox2d.common.Vec2>/* get */this.m_vertices[i]);
                 let fb : fisica.FBody = new fisica.FCircle(this.getVertexSize());
                 fb.setPosition$float$float(p.x, p.y);
@@ -3594,8 +3614,8 @@ namespace fisica {
                 fb.setCategoryBits(this.m_categoryBits);
                 fb.setState(this);
                 /* add */(this.m_vertexBodies.push(fb)>0);
-            };
-            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {
+            };}
+            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {{
                 let fb : fisica.FBody = <fisica.FBody>/* get */this.m_vertexBodies[i];
                 fb.setDrawable(false);
                 fb.setParent(this);
@@ -3605,16 +3625,16 @@ namespace fisica {
                 fb.addForce$float$float(f.x, f.y);
                 fb.addTorque(this.m_torque);
                 this.m_joint.addBody(fb);
-            };
+            };}
             this.m_joint.setCollideConnected(false);
             world.add$fisica_FJoint(this.m_joint);
         }
 
         public removeFromWorld() {
             this.m_joint.removeFromWorld();
-            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {{
                 (<fisica.FBody>(/* get */this.m_vertexBodies[i])).removeFromWorld();
-            };
+            };}
         }
 
         /**
@@ -3665,12 +3685,12 @@ namespace fisica {
 
         public setAsCircle$float$float$float$int(x : number, y : number, size : number, vertexCount : number) {
             /* clear */(this.m_vertices.length = 0);
-            for(let i : number = 0; i < vertexCount; i++) {
+            for(let i : number = 0; i < vertexCount; i++) {{
                 let angle : number = PApplet.map(i, 0, vertexCount, 0, PConstants.TWO_PI);
                 let vx : number = (<any>Math).fround(x + (<any>Math).fround((<any>Math).fround(size / 2) * PApplet.sin(angle)));
                 let vy : number = (<any>Math).fround(y + (<any>Math).fround((<any>Math).fround(size / 2) * PApplet.cos(angle)));
                 this.vertex(vx, vy);
-            };
+            };}
         }
 
         /**
@@ -3779,44 +3799,44 @@ namespace fisica {
         }
 
         public addForce$float$float(fx : number, fy : number) {
-            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {{
                 (<fisica.FBody>/* get */this.m_vertexBodies[i]).addForce$float$float(fx, fy);
-            };
+            };}
             this.m_force.add(fisica.Fisica.screenToWorld$float$float(fx, fy));
         }
 
         public addTorque(t : number) {
-            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {{
                 (<fisica.FBody>/* get */this.m_vertexBodies[i]).addTorque(t);
-            };
+            };}
             this.m_torque += t;
         }
 
         public setDensity(d : number) {
-            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {{
                 (<fisica.FBody>/* get */this.m_vertexBodies[i]).setDensity(d);
-            };
+            };}
             this.m_density = d;
         }
 
         public setFriction(d : number) {
-            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {{
                 (<fisica.FBody>/* get */this.m_vertexBodies[i]).setFriction(d);
-            };
+            };}
             this.m_friction = d;
         }
 
         public setRestitution(d : number) {
-            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {{
                 (<fisica.FBody>/* get */this.m_vertexBodies[i]).setRestitution(d);
-            };
+            };}
             this.m_restitution = d;
         }
 
         public setBullet(d : boolean) {
-            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_vertexBodies.length); i++) {{
                 (<fisica.FBody>/* get */this.m_vertexBodies[i]).setBullet(d);
-            };
+            };}
             this.m_bullet = d;
         }
 
@@ -3908,10 +3928,10 @@ namespace fisica {
             let xf : org.jbox2d.common.XForm = new org.jbox2d.common.XForm();
             xf.R.set(-this.m_angle);
             xf.position = org.jbox2d.common.Mat22.mul(xf.R, this.m_position.negate());
-            for(let i : number = 0; i < /* size */(<number>pd.vertices.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>pd.vertices.length); i++) {{
                 let ver : org.jbox2d.common.Vec2 = <org.jbox2d.common.Vec2>/* get */pd.vertices[i];
                 org.jbox2d.common.XForm.mulTransToOut(xf, ver, ver);
-            };
+            };}
             return pd;
         }
 
@@ -4079,11 +4099,11 @@ namespace fisica {
 
         public getShapeDefs() : Array<any> {
             let result : Array<any> = <any>([]);
-            for(let i : number = 0; i < /* size */(<number>this.m_shapes.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_shapes.length); i++) {{
                 let sd : org.jbox2d.collision.shapes.ShapeDef = <org.jbox2d.collision.shapes.ShapeDef>((<fisica.FBody>/* get */this.m_shapes[i]).getTransformedShapeDef());
                 sd = (<fisica.FBody>/* get */this.m_shapes[i]).processShapeDef(sd);
                 /* add */(result.push(sd)>0);
-            };
+            };}
             return result;
         }
 
@@ -4100,18 +4120,18 @@ namespace fisica {
             if(this.m_image != null) {
                 this.drawImage(applet);
             } else {
-                for(let i : number = 0; i < /* size */(<number>this.m_shapes.length); i++) {
+                for(let i : number = 0; i < /* size */(<number>this.m_shapes.length); i++) {{
                     (<fisica.FBody>/* get */this.m_shapes[i]).draw(applet);
-                };
+                };}
             }
             this.postDraw(applet);
         }
 
         public drawDebug(applet : PGraphics) {
             this.preDrawDebug(applet);
-            for(let i : number = 0; i < /* size */(<number>this.m_shapes.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_shapes.length); i++) {{
                 (<fisica.FBody>/* get */this.m_shapes[i]).drawDebug(applet);
-            };
+            };}
             this.postDrawDebug(applet);
         }
     }
@@ -4258,10 +4278,10 @@ namespace fisica {
             let xf : org.jbox2d.common.XForm = new org.jbox2d.common.XForm();
             xf.R.set(-this.m_angle);
             xf.position = org.jbox2d.common.Mat22.mul(xf.R, this.m_position.negate());
-            for(let i : number = 0; i < /* size */(<number>pd.vertices.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>pd.vertices.length); i++) {{
                 let ver : org.jbox2d.common.Vec2 = <org.jbox2d.common.Vec2>/* get */pd.vertices[i];
                 org.jbox2d.common.XForm.mulTransToOut(xf, ver, ver);
-            };
+            };}
             return pd;
         }
 
@@ -4271,10 +4291,10 @@ namespace fisica {
                 this.drawImage(applet);
             } else {
                 applet.beginShape();
-                for(let i : number = 0; i < /* size */(<number>this.m_vertices.length); i++) {
+                for(let i : number = 0; i < /* size */(<number>this.m_vertices.length); i++) {{
                     let v : org.jbox2d.common.Vec2 = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(<org.jbox2d.common.Vec2>/* get */this.m_vertices[i]);
                     applet.vertex(v.x, v.y);
-                };
+                };}
                 if(this.m_closed) {
                     applet.endShape(PConstants.CLOSE);
                 } else {
@@ -4292,26 +4312,26 @@ namespace fisica {
                 applet.stroke(120, 100);
                 applet.fill(120, 30);
                 let ss : org.jbox2d.collision.shapes.Shape = b.getShapeList();
-                while((ss != null)) {
+                while((ss != null)) {{
                     let ps : org.jbox2d.collision.shapes.PolygonShape = <org.jbox2d.collision.shapes.PolygonShape>ss;
                     let vecs : org.jbox2d.common.Vec2[] = ps.getVertices();
                     applet.beginShape();
-                    for(let j : number = 0; j < ps.getVertexCount(); j++) {
+                    for(let j : number = 0; j < ps.getVertexCount(); j++) {{
                         let v : org.jbox2d.common.Vec2 = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(vecs[j]);
                         applet.vertex(v.x, v.y);
-                    };
+                    };}
                     applet.endShape(PConstants.CLOSE);
                     let c : org.jbox2d.common.Vec2 = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(ps.getCentroid());
                     applet.ellipse(c.x, c.y, 2, 2);
                     ss = ss.getNext();
-                };
+                }};
                 applet.popStyle();
             }
             applet.beginShape();
-            for(let i : number = 0; i < /* size */(<number>this.m_vertices.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_vertices.length); i++) {{
                 let v : org.jbox2d.common.Vec2 = fisica.Fisica.worldToScreen$org_jbox2d_common_Vec2(<org.jbox2d.common.Vec2>/* get */this.m_vertices[i]);
                 applet.vertex(v.x, v.y);
-            };
+            };}
             if(this.m_closed) {
                 applet.endShape(PConstants.CLOSE);
             } else {
@@ -4340,12 +4360,12 @@ namespace fisica {
             let md : org.jbox2d.dynamics.joints.ConstantVolumeJointDef = new org.jbox2d.dynamics.joints.ConstantVolumeJointDef();
             md.frequencyHz = this.m_frequency;
             md.dampingRatio = this.m_damping;
-            for(let i : number = 0; i < /* size */(<number>this.m_bodies.length); i++) {
+            for(let i : number = 0; i < /* size */(<number>this.m_bodies.length); i++) {{
                 let b : org.jbox2d.dynamics.Body = (<fisica.FBody>/* get */this.m_bodies[i]).m_body;
                 if(b != null) {
                     md.addBody(b);
                 }
-            };
+            };}
             return md;
         }
 
@@ -4400,7 +4420,7 @@ namespace fisica {
             let y1 : number = 0.0;
             let a : number = 0.0;
             let i : number;
-            for(i = 0; i < /* size */(<number>this.m_bodies.length) - 1; ++i) {
+            for(i = 0; i < /* size */(<number>this.m_bodies.length) - 1; ++i) {{
                 x0 = (<fisica.FBody>/* get */this.m_bodies[i]).getX();
                 y0 = (<fisica.FBody>/* get */this.m_bodies[i]).getY();
                 x1 = (<fisica.FBody>/* get */this.m_bodies[i + 1]).getX();
@@ -4409,7 +4429,7 @@ namespace fisica {
                 signedArea += a;
                 centroid.x += (<any>Math).fround(((<any>Math).fround(x0 + x1)) * a);
                 centroid.y += (<any>Math).fround(((<any>Math).fround(y0 + y1)) * a);
-            };
+            };}
             x0 = (<fisica.FBody>/* get */this.m_bodies[i]).getX();
             y0 = (<fisica.FBody>/* get */this.m_bodies[i]).getY();
             x1 = (<fisica.FBody>/* get */this.m_bodies[0]).getX();
@@ -4435,9 +4455,9 @@ namespace fisica {
             } else {
                 if(/* size */(<number>this.m_bodies.length) > 0) {
                     applet.beginShape();
-                    for(let i : number = 0; i < /* size */(<number>this.m_bodies.length); i++) {
+                    for(let i : number = 0; i < /* size */(<number>this.m_bodies.length); i++) {{
                         applet.vertex((<fisica.FBody>/* get */this.m_bodies[i]).getX(), (<fisica.FBody>/* get */this.m_bodies[i]).getY());
-                    };
+                    };}
                     applet.endShape(PConstants.CLOSE);
                 }
             }
@@ -4448,13 +4468,13 @@ namespace fisica {
             this.preDrawDebug(applet);
             if(/* size */(<number>this.m_bodies.length) > 0) {
                 applet.beginShape();
-                for(let i : number = 0; i < /* size */(<number>this.m_bodies.length); i++) {
+                for(let i : number = 0; i < /* size */(<number>this.m_bodies.length); i++) {{
                     applet.vertex((<fisica.FBody>/* get */this.m_bodies[i]).getX(), (<fisica.FBody>/* get */this.m_bodies[i]).getY());
-                };
+                };}
                 applet.endShape(PConstants.CLOSE);
-                for(let i : number = 0; i < /* size */(<number>this.m_bodies.length); i++) {
+                for(let i : number = 0; i < /* size */(<number>this.m_bodies.length); i++) {{
                     applet.ellipse((<fisica.FBody>/* get */this.m_bodies[i]).getX(), (<fisica.FBody>/* get */this.m_bodies[i]).getY(), 5, 5);
-                };
+                };}
             }
             this.postDrawDebug(applet);
         }
@@ -4665,11 +4685,11 @@ namespace fisica {
                 applet.vertex(10, 0);
                 let x : number;
                 let y : number;
-                for(let i : number = 0; i < numSpins; i++) {
+                for(let i : number = 0; i < numSpins; i++) {{
                     x = PApplet.map(i + 1, 0, numSpins + 1, 10, (<any>Math).fround(dist - 10));
                     y = ((i % 2) * 2 - 1) * 4;
                     applet.vertex(x, y);
-                };
+                };}
                 x = PApplet.map(numSpins + 1, 0, numSpins + 1, 10, (<any>Math).fround(dist - 10));
                 applet.vertex(x, 0);
                 applet.vertex(dist, 0);
